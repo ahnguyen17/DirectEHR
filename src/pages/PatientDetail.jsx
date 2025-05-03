@@ -238,97 +238,202 @@ export default function PatientDetail() {
 
       {/* Tab content */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Patient Information */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h2 className="text-lg font-medium text-gray-900">Patient Information</h2>
-            </div>
-            <div className="border-t border-gray-200">
-              <dl>
-                <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.name}</dd>
-                </div>
-                <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Date of birth</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{formatDate(patient.dob)} ({calculateAge(patient.dob)} years)</dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Gender</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.gender}</dd>
-                </div>
-                <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Address</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.address}</dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.phone}</dd>
-                </div>
-                <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Insurance</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.insurance}</dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Policy Number</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.policyNumber}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-
-          {/* Allergies & Medical History */}
-          <div>
-            {/* Allergies */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900">Allergies</h2>
-                <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
-              </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                {patient.allergies && patient.allergies.length > 0 ? (
-                  <ul className="list-disc pl-5 space-y-1">
-                    {patient.allergies.map((allergy, index) => (
-                      <li key={index} className="text-sm text-gray-700">{allergy}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500">No known allergies</p>
-                )}
-              </div>
-            </div>
-
-            {/* Medical History */}
+        <>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Patient Information */}
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900">Medical History</h2>
-                <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+              <div className="px-4 py-5 sm:px-6">
+                <h2 className="text-lg font-medium text-gray-900">Patient Information</h2>
               </div>
               <div className="border-t border-gray-200">
-                <ul className="divide-y divide-gray-200">
-                  {patient.medicalHistory && patient.medicalHistory.map((condition, index) => (
-                    <li key={index} className="px-4 py-4">
-                      <div className="flex justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{condition.condition}</p>
-                          <p className="text-sm text-gray-500">Diagnosed: {formatDate(condition.diagnosedDate)}</p>
+                <dl>
+                  <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Full name</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.name}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Date of birth</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{formatDate(patient.dob)} ({calculateAge(patient.dob)} years)</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Gender</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.gender}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Address</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.address}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.phone}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Insurance</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.insurance}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Policy Number</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.policyNumber}</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            {/* Medical & Surgical History Column */}
+            <div className="space-y-6">
+              {/* Medical History */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Medical History</h2>
+                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                </div>
+                <div className="border-t border-gray-200">
+                  <ul className="divide-y divide-gray-200">
+                    {patient.medicalHistory && patient.medicalHistory
+                      .filter(condition => condition.type !== 'Surgical')
+                      .map((condition, index) => (
+                      <li key={index} className="px-4 py-4">
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{condition.condition}</p>
+                            <p className="text-sm text-gray-500">Diagnosed: {formatDate(condition.diagnosedDate)}</p>
+                          </div>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            condition.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {condition.status}
+                          </span>
                         </div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          condition.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {condition.status}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                      </li>
+                    ))}
+                    {!patient.medicalHistory || patient.medicalHistory.filter(condition => condition.type !== 'Surgical').length === 0 && (
+                      <li className="px-4 py-4 text-sm text-gray-500">No medical history recorded</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Surgical History */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Surgical History</h2>
+                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                </div>
+                <div className="border-t border-gray-200">
+                  <ul className="divide-y divide-gray-200">
+                    {patient.medicalHistory && patient.medicalHistory
+                      .filter(condition => condition.type === 'Surgical')
+                      .map((surgery, index) => (
+                      <li key={index} className="px-4 py-4">
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{surgery.condition}</p>
+                            <p className="text-sm text-gray-500">Date: {formatDate(surgery.diagnosedDate)}</p>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                    {!patient.medicalHistory || patient.medicalHistory.filter(condition => condition.type === 'Surgical').length === 0 && (
+                      <li className="px-4 py-4 text-sm text-gray-500">No surgical history recorded</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Allergies */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Allergies</h2>
+                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                </div>
+                <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+                  {patient.allergies && patient.allergies.length > 0 ? (
+                    <ul className="list-disc pl-5 space-y-1">
+                      {patient.allergies.map((allergy, index) => (
+                        <li key={index} className="text-sm text-gray-700">{allergy}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500">No known allergies</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Family & Social History Column */}
+            <div className="space-y-6">
+              {/* Family History */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Family History</h2>
+                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                </div>
+                <div className="border-t border-gray-200">
+                  <ul className="divide-y divide-gray-200">
+                    {patient.familyHistory && patient.familyHistory.length > 0 ? (
+                      patient.familyHistory.map((item, index) => (
+                        <li key={index} className="px-4 py-4">
+                          <div className="flex justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{item.condition}</p>
+                              <p className="text-sm text-gray-500">Relation: {item.relation}</p>
+                            </div>
+                          </div>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-4 py-4 text-sm text-gray-500">No family history recorded</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Social History */}
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                  <h2 className="text-lg font-medium text-gray-900">Social History</h2>
+                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                </div>
+                <div className="border-t border-gray-200">
+                  <dl>
+                    <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Tobacco Use</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {patient.socialHistory?.tobaccoUse || 'Not recorded'}
+                      </dd>
+                    </div>
+                    <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Alcohol Use</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {patient.socialHistory?.alcoholUse || 'Not recorded'}
+                      </dd>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Exercise</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {patient.socialHistory?.exercise || 'Not recorded'}
+                      </dd>
+                    </div>
+                    <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Diet</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {patient.socialHistory?.diet || 'Not recorded'}
+                      </dd>
+                    </div>
+                    <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Occupation</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        {patient.socialHistory?.occupation || 'Not recorded'}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Medications */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg lg:col-span-2">
+          {/* Medications Section */}
+          <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-900">Current Medications</h2>
               <button className="text-sm text-blue-600 hover:text-blue-500">Add Medication</button>
@@ -368,11 +473,18 @@ export default function PatientDetail() {
                       </td>
                     </tr>
                   ))}
+                  {(!patient.medications || patient.medications.length === 0) && (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-4 text-sm text-gray-500 text-center">
+                        No medications recorded
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === 'vitals' && (

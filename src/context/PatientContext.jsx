@@ -6,11 +6,163 @@ const PatientContext = createContext();
 
 // Default mock data
 const defaultPatients = [
-  { id: 1, name: 'James Wilson', dob: '1980-05-15', gender: 'Male', mrn: 'MRN123456', address: '123 Main St, Anytown, USA', phone: '(555) 123-4567' },
-  { id: 2, name: 'Sarah Johnson', dob: '1993-08-21', gender: 'Female', mrn: 'MRN789012', address: '456 Oak Ave, Somecity, USA', phone: '(555) 234-5678' },
-  { id: 3, name: 'Robert Davis', dob: '1958-12-03', gender: 'Male', mrn: 'MRN345678', address: '789 Pine Rd, Otherville, USA', phone: '(555) 345-6789' },
-  { id: 4, name: 'Emily Chen', dob: '1987-04-10', gender: 'Female', mrn: 'MRN901234', address: '101 Cedar St, Newtown, USA', phone: '(555) 456-7890' },
-  { id: 5, name: 'Michael Thompson', dob: '1975-06-22', gender: 'Male', mrn: 'MRN567890', address: '202 Maple Dr, Lastcity, USA', phone: '(555) 567-8901' },
+  {
+    id: 1,
+    name: 'James Wilson',
+    dob: '1980-05-15',
+    gender: 'Male',
+    mrn: 'MRN123456',
+    address: '123 Main St, Anytown, USA',
+    phone: '(555) 123-4567',
+    insurance: 'Blue Cross Blue Shield',
+    policyNumber: 'BCBS12345678',
+    allergies: ['Penicillin', 'Peanuts'],
+    medicalHistory: [
+      { condition: 'Hypertension', diagnosedDate: '2018-03-15', status: 'Active', type: 'Medical' },
+      { condition: 'Type 2 Diabetes', diagnosedDate: '2019-07-22', status: 'Active', type: 'Medical' },
+      { condition: 'Appendectomy', diagnosedDate: '2010-05-10', status: 'Resolved', type: 'Surgical' }
+    ],
+    familyHistory: [
+      { relation: 'Father', condition: 'Hypertension' },
+      { relation: 'Mother', condition: 'Type 2 Diabetes' },
+      { relation: 'Sister', condition: 'Asthma' }
+    ],
+    socialHistory: {
+      tobaccoUse: 'Never smoker',
+      alcoholUse: 'Social drinker, 1-2 drinks per week',
+      exercise: 'Moderate, walks 30 minutes 3 times per week',
+      diet: 'Follows diabetic diet, low carbohydrate',
+      occupation: 'Software Engineer'
+    },
+    medications: [
+      { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', startDate: '2018-04-01' },
+      { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', startDate: '2019-08-15' }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Sarah Johnson',
+    dob: '1993-08-21',
+    gender: 'Female',
+    mrn: 'MRN789012',
+    address: '456 Oak Ave, Somecity, USA',
+    phone: '(555) 234-5678',
+    insurance: 'Aetna',
+    policyNumber: 'AET87654321',
+    allergies: ['Sulfa drugs'],
+    medicalHistory: [
+      { condition: 'Asthma', diagnosedDate: '2005-06-12', status: 'Active', type: 'Medical' },
+      { condition: 'Knee arthroscopy', diagnosedDate: '2022-02-15', status: 'Resolved', type: 'Surgical' }
+    ],
+    familyHistory: [
+      { relation: 'Mother', condition: 'Breast Cancer' },
+      { relation: 'Maternal Grandmother', condition: 'Osteoporosis' }
+    ],
+    socialHistory: {
+      tobaccoUse: 'Never smoker',
+      alcoholUse: 'Occasional, 2-3 drinks per month',
+      exercise: 'Active, runs 5 miles 3 times per week',
+      diet: 'Vegetarian',
+      occupation: 'Physical Therapist'
+    },
+    medications: [
+      { name: 'Albuterol Inhaler', dosage: '90mcg', frequency: 'As needed', startDate: '2005-06-15' }
+    ]
+  },
+  {
+    id: 3,
+    name: 'Robert Davis',
+    dob: '1958-12-03',
+    gender: 'Male',
+    mrn: 'MRN345678',
+    address: '789 Pine Rd, Otherville, USA',
+    phone: '(555) 345-6789',
+    insurance: 'Medicare',
+    policyNumber: 'MED12345678',
+    allergies: ['Latex', 'Ibuprofen'],
+    medicalHistory: [
+      { condition: 'COPD', diagnosedDate: '2010-11-30', status: 'Active', type: 'Medical' },
+      { condition: 'Coronary Artery Disease', diagnosedDate: '2015-08-17', status: 'Active', type: 'Medical' },
+      { condition: 'Hip Replacement', diagnosedDate: '2018-09-05', status: 'Resolved', type: 'Surgical' }
+    ],
+    familyHistory: [
+      { relation: 'Father', condition: 'Heart Disease, died at 62' },
+      { relation: 'Brother', condition: 'COPD' }
+    ],
+    socialHistory: {
+      tobaccoUse: 'Former smoker, quit in 2010, 30 pack-year history',
+      alcoholUse: 'None',
+      exercise: 'Limited due to COPD, short walks daily',
+      diet: 'Low sodium',
+      occupation: 'Retired Construction Worker'
+    },
+    medications: [
+      { name: 'Spiriva', dosage: '18mcg', frequency: 'Once daily', startDate: '2010-12-15' },
+      { name: 'Atorvastatin', dosage: '40mg', frequency: 'Once daily', startDate: '2015-09-01' },
+      { name: 'Aspirin', dosage: '81mg', frequency: 'Once daily', startDate: '2015-09-01' }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Emily Chen',
+    dob: '1987-04-10',
+    gender: 'Female',
+    mrn: 'MRN901234',
+    address: '101 Cedar St, Newtown, USA',
+    phone: '(555) 456-7890',
+    insurance: 'United Healthcare',
+    policyNumber: 'UHC98765432',
+    allergies: [],
+    medicalHistory: [
+      { condition: 'Migraine', diagnosedDate: '2015-03-22', status: 'Active', type: 'Medical' },
+      { condition: 'Anxiety', diagnosedDate: '2018-05-10', status: 'Active', type: 'Medical' }
+    ],
+    familyHistory: [
+      { relation: 'Mother', condition: 'Migraine' },
+      { relation: 'Father', condition: 'Hypertension' }
+    ],
+    socialHistory: {
+      tobaccoUse: 'Never smoker',
+      alcoholUse: 'Rare, less than 1 drink per month',
+      exercise: 'Yoga 2 times per week',
+      diet: 'Balanced, avoids triggers for migraines',
+      occupation: 'Graphic Designer'
+    },
+    medications: [
+      { name: 'Sumatriptan', dosage: '50mg', frequency: 'As needed for migraine', startDate: '2015-04-05' },
+      { name: 'Propranolol', dosage: '20mg', frequency: 'Twice daily', startDate: '2015-05-10' }
+    ]
+  },
+  {
+    id: 5,
+    name: 'Michael Thompson',
+    dob: '1975-06-22',
+    gender: 'Male',
+    mrn: 'MRN567890',
+    address: '202 Maple Dr, Lastcity, USA',
+    phone: '(555) 567-8901',
+    insurance: 'Cigna',
+    policyNumber: 'CIG45678901',
+    allergies: ['Codeine'],
+    medicalHistory: [
+      { condition: 'Mitral Valve Regurgitation', diagnosedDate: '2020-02-10', status: 'Active', type: 'Medical' },
+      { condition: 'Appendectomy', diagnosedDate: '1995-08-15', status: 'Resolved', type: 'Surgical' }
+    ],
+    familyHistory: [
+      { relation: 'Father', condition: 'Heart Valve Disease' },
+      { relation: 'Paternal Grandfather', condition: 'Heart Failure' }
+    ],
+    socialHistory: {
+      tobaccoUse: 'Never smoker',
+      alcoholUse: 'Moderate, 5-6 drinks per week',
+      exercise: 'Regular, gym 3 times per week',
+      diet: 'Mediterranean diet',
+      occupation: 'High School Teacher'
+    },
+    medications: [
+      { name: 'Lisinopril', dosage: '5mg', frequency: 'Once daily', startDate: '2020-03-01' }
+    ]
+  },
 ];
 
 const defaultNotes = [
