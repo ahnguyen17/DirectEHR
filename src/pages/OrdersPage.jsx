@@ -6,7 +6,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
   useEffect(() => {
     // In a real app, this would fetch data from an API
     const mockOrders = [
@@ -18,68 +18,72 @@ export default function OrdersPage() {
       { id: 6, patientId: 5, patientName: 'Michael Thompson', date: '2025-04-05', type: 'Echocardiogram', status: 'Pending', dueDate: '2025-05-05', details: 'Follow-up for mitral valve regurgitation' },
       { id: 7, patientId: 6, patientName: 'Lisa Rodriguez', date: '2025-04-01', type: 'Laboratory - CBC', status: 'Completed', completedDate: '2025-04-03', results: 'Within normal limits' },
     ];
-    
+
     setOrders(mockOrders);
   }, []);
-  
+
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
+    const matchesSearch =
       order.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (order.details && order.details.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.results && order.results.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = 
+
+    const matchesStatus =
       statusFilter === 'all' ||
       order.status.toLowerCase() === statusFilter.toLowerCase();
-    
+
     return matchesSearch && matchesStatus;
   });
-  
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Orders</h1>
-        <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-4 lg:mb-0">Orders</h1>
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 pr-3 border"
+                placeholder="Search orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 pr-3 border"
-              placeholder="Search orders..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            >
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="scheduled">Scheduled</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-          >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <Link
-            to="/orders/new"
-            className="btn btn-primary inline-flex items-center justify-center"
-          >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            New Order
-          </Link>
+          <div className="flex-shrink-0">
+            <Link
+              to="/orders/new"
+              className="btn btn-primary inline-flex items-center justify-center w-full lg:w-auto"
+            >
+              <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              New Order
+            </Link>
+          </div>
         </div>
       </div>
-      
+
       <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -131,7 +135,7 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800' : 
+                        order.status === 'Completed' ? 'bg-green-100 text-green-800' :
                         order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                         order.status === 'Active' ? 'bg-blue-100 text-blue-800' :
                         order.status === 'Scheduled' ? 'bg-purple-100 text-purple-800' :

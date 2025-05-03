@@ -6,7 +6,7 @@ export default function NotesPage() {
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPatient, setFilterPatient] = useState('');
-  
+
   useEffect(() => {
     // In a real app, this would fetch data from an API
     const mockNotes = [
@@ -16,61 +16,65 @@ export default function NotesPage() {
       { id: 4, patientId: 3, patientName: 'Robert Davis', date: '2025-04-15', title: 'Follow-up Visit', content: 'Follow-up for COPD. Patient reports slight improvement in breathing with new inhaler. Still experiences shortness of breath with moderate exertion. Oxygen saturation 94% at rest. Discussed smoking cessation strategies.' },
       { id: 5, patientId: 4, patientName: 'Emily Chen', date: '2025-04-10', title: 'New Patient Visit', content: 'Initial consultation with new patient. Medical history taken. Patient reports occasional migraine headaches, otherwise healthy. Family history significant for hypertension and diabetes. Created care plan for migraine management.' },
     ];
-    
+
     setNotes(mockNotes);
   }, []);
-  
+
   const filteredNotes = notes.filter(note => {
-    const matchesSearch = 
+    const matchesSearch =
       note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesPatient = 
+
+    const matchesPatient =
       filterPatient === '' ||
       note.patientName.toLowerCase().includes(filterPatient.toLowerCase());
-    
+
     return matchesSearch && matchesPatient;
   });
-  
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
+
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Patient Notes</h1>
-        <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-4 lg:mb-0">Patient Notes</h1>
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
+              <input
+                type="text"
+                className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 pr-3 border"
+                placeholder="Search notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <input
               type="text"
-              className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 pr-3 border"
-              placeholder="Search notes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
+              placeholder="Filter by patient name..."
+              value={filterPatient}
+              onChange={(e) => setFilterPatient(e.target.value)}
             />
           </div>
-          <input
-            type="text"
-            className="focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3 border"
-            placeholder="Filter by patient name..."
-            value={filterPatient}
-            onChange={(e) => setFilterPatient(e.target.value)}
-          />
-          <Link
-            to="/notes/new"
-            className="btn btn-primary inline-flex items-center justify-center"
-          >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            New Note
-          </Link>
+          <div className="flex-shrink-0">
+            <Link
+              to="/notes/new"
+              className="btn btn-primary inline-flex items-center justify-center w-full lg:w-auto"
+            >
+              <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+              New Note
+            </Link>
+          </div>
         </div>
       </div>
-      
+
       <div className="mt-8 space-y-6">
         {filteredNotes.length > 0 ? (
           filteredNotes.map((note) => (
