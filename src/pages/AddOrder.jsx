@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
+import MedicationOrderModal from '../components/MedicationOrderModal';
 
 export default function AddOrder() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id: patientIdFromParams } = useParams();
-  const { patients, addOrder } = usePatient();
+  const { patients, addOrder, getPatient } = usePatient();
 
   // Parse query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -28,6 +29,8 @@ export default function AddOrder() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [currentPatient, setCurrentPatient] = useState(null);
 
   // Set patient name when patient ID changes
   useEffect(() => {
@@ -38,9 +41,21 @@ export default function AddOrder() {
           ...prev,
           patientName: selectedPatient.name
         }));
+
+        // Fetch complete patient data for medication modal
+        const fetchPatientData = async () => {
+          try {
+            const patientData = await getPatient(selectedPatient.id);
+            setCurrentPatient(patientData);
+          } catch (error) {
+            console.error('Error fetching patient data:', error);
+          }
+        };
+
+        fetchPatientData();
       }
     }
-  }, [order.patientId, patients]);
+  }, [order.patientId, patients, getPatient]);
 
   const orderTypes = [
     { value: 'Laboratory', label: 'Laboratory Test' },
@@ -72,6 +87,12 @@ export default function AddOrder() {
       ...order,
       [name]: value
     });
+
+    // If type is changed to Medication, show the medication modal
+    if (name === 'type' && value === 'Medication' && order.patientId) {
+      setShowMedicationModal(true);
+      return;
+    }
 
     // Clear error for this field if it exists
     if (errors[name]) {
@@ -112,6 +133,12 @@ export default function AddOrder() {
       return;
     }
 
+    // If it's a medication order, show the medication modal
+    if (order.type === 'Medication') {
+      setShowMedicationModal(true);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -133,6 +160,35 @@ export default function AddOrder() {
       setErrors({
         ...errors,
         submit: 'Failed to create order. Please try again.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveMedicationOrder = async (medicationData, existingOrder) => {
+    setLoading(true);
+
+    try {
+      const newOrder = {
+        ...order,
+        patientId: parseInt(order.patientId),
+        ...medicationData
+      };
+
+      await addOrder(newOrder);
+
+      // Navigate back to patient detail page or orders page
+      if (order.patientId) {
+        navigate(`/patients/${order.patientId}`);
+      } else {
+        navigate('/orders');
+      }
+    } catch (error) {
+      console.error('Error creating medication order:', error);
+      setErrors({
+        ...errors,
+        submit: 'Failed to create medication order. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -206,72 +262,80 @@ export default function AddOrder() {
             {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
           </div>
 
-          {/* Status */}
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              id="status"
-              name="status"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              value={order.status}
-              onChange={handleChange}
-            >
-              {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Status - Only show if not a medication order */}
+          {order.type !== 'Medication' && (
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+              <select
+                id="status"
+                name="status"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                value={order.status}
+                onChange={handleChange}
+              >
+                {statusOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          {/* Due Date */}
-          <div>
-            <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">
-              Due Date {order.status === 'Scheduled' ? '(Required)' : '(Optional)'}
-            </label>
-            <input
-              type="date"
-              id="dueDate"
-              name="dueDate"
-              className={`mt-1 block w-full border ${errors.dueDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2`}
-              value={order.dueDate}
-              onChange={handleChange}
-            />
-            {errors.dueDate && <p className="mt-1 text-sm text-red-500">{errors.dueDate}</p>}
-          </div>
+          {/* Due Date - Only show if not a medication order */}
+          {order.type !== 'Medication' && (
+            <div>
+              <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">
+                Due Date {order.status === 'Scheduled' ? '(Required)' : '(Optional)'}
+              </label>
+              <input
+                type="date"
+                id="dueDate"
+                name="dueDate"
+                className={`mt-1 block w-full border ${errors.dueDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2`}
+                value={order.dueDate}
+                onChange={handleChange}
+              />
+              {errors.dueDate && <p className="mt-1 text-sm text-red-500">{errors.dueDate}</p>}
+            </div>
+          )}
 
-          {/* Priority */}
-          <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700">Priority</label>
-            <select
-              id="priority"
-              name="priority"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              value={order.priority}
-              onChange={handleChange}
-            >
-              {priorityOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Priority - Only show if not a medication order */}
+          {order.type !== 'Medication' && (
+            <div>
+              <label htmlFor="priority" className="block text-sm font-medium text-gray-700">Priority</label>
+              <select
+                id="priority"
+                name="priority"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                value={order.priority}
+                onChange={handleChange}
+              >
+                {priorityOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Details */}
-        <div>
-          <label htmlFor="details" className="block text-sm font-medium text-gray-700">Details</label>
-          <textarea
-            id="details"
-            name="details"
-            rows="4"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-            value={order.details}
-            onChange={handleChange}
-            placeholder="Enter order details, instructions, or additional information"
-          ></textarea>
-        </div>
+        {/* Details - Only show if not a medication order */}
+        {order.type !== 'Medication' && (
+          <div>
+            <label htmlFor="details" className="block text-sm font-medium text-gray-700">Details</label>
+            <textarea
+              id="details"
+              name="details"
+              rows="4"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              value={order.details}
+              onChange={handleChange}
+              placeholder="Enter order details, instructions, or additional information"
+            ></textarea>
+          </div>
+        )}
 
         {/* Submit Buttons */}
         <div className="flex justify-end space-x-3">
@@ -292,6 +356,17 @@ export default function AddOrder() {
           </button>
         </div>
       </form>
+
+      {/* Medication Order Modal */}
+      {showMedicationModal && currentPatient && (
+        <MedicationOrderModal
+          isOpen={showMedicationModal}
+          onClose={() => setShowMedicationModal(false)}
+          onSave={handleSaveMedicationOrder}
+          patientId={parseInt(order.patientId)}
+          currentMedications={currentPatient.medications || []}
+        />
+      )}
     </div>
   );
 }

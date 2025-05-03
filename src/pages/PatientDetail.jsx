@@ -21,6 +21,7 @@ import FamilyHistoryModal from '../components/FamilyHistoryModal';
 import SocialHistoryModal from '../components/SocialHistoryModal';
 import AllergyModal from '../components/AllergyModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import MedicationManagement from '../components/MedicationManagement';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -489,6 +490,17 @@ export default function PatientDetail() {
             <ClipboardDocumentCheckIcon className="h-4 w-4 mr-1" />
             Diagnostics
           </button>
+          <button
+            className={`${
+              activeTab === 'medications'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+            onClick={() => setActiveTab('medications')}
+          >
+            <BeakerIcon className="h-4 w-4 mr-1" />
+            Medications
+          </button>
         </nav>
       </div>
 
@@ -801,7 +813,14 @@ export default function PatientDetail() {
           <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-900">Current Medications</h2>
-              <button className="text-sm text-blue-600 hover:text-blue-500">Add Medication</button>
+              <div>
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-500"
+                  onClick={() => setActiveTab('medications')}
+                >
+                  Manage Medications
+                </button>
+              </div>
             </div>
             <div className="border-t border-gray-200">
               <table className="min-w-full divide-y divide-gray-200">
@@ -818,6 +837,9 @@ export default function PatientDetail() {
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Start Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -836,11 +858,19 @@ export default function PatientDetail() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(medication.startDate)}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={() => setActiveTab('medications')}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          View Details
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {(!patient.medications || patient.medications.length === 0) && (
                     <tr>
-                      <td colSpan="4" className="px-6 py-4 text-sm text-gray-500 text-center">
+                      <td colSpan="5" className="px-6 py-4 text-sm text-gray-500 text-center">
                         No medications recorded
                       </td>
                     </tr>
@@ -1200,6 +1230,19 @@ export default function PatientDetail() {
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {activeTab === 'medications' && (
+        <div className="medications-tab">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-medium text-gray-900">Medication Management</h2>
+          </div>
+
+          <MedicationManagement
+            patient={patient}
+            onUpdate={(updatedPatient) => setPatient(updatedPatient)}
+          />
         </div>
       )}
 
