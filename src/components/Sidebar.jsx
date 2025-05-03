@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  UserCircleIcon, 
-  HomeIcon, 
-  ChartBarIcon, 
+import {
+  UserCircleIcon,
+  HomeIcon,
+  ChartBarIcon,
   DocumentTextIcon,
   ClipboardDocumentListIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  BeakerIcon,
+  ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 const navItems = [
@@ -16,12 +18,14 @@ const navItems = [
   { name: 'Vitals', icon: ChartBarIcon, to: '/vitals' },
   { name: 'Notes', icon: DocumentTextIcon, to: '/notes' },
   { name: 'Orders', icon: ClipboardDocumentListIcon, to: '/orders' },
+  { name: 'Labs', icon: BeakerIcon, to: '/labs' },
+  { name: 'Diagnostics', icon: ClipboardDocumentCheckIcon, to: '/diagnostics' },
 ];
 
 export default function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  
+
   return (
     <>
       {/* Mobile menu button */}
@@ -39,7 +43,7 @@ export default function Sidebar() {
           )}
         </button>
       </div>
-      
+
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-white md:hidden pt-16">
@@ -64,7 +68,7 @@ export default function Sidebar() {
           </nav>
         </div>
       )}
-      
+
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">

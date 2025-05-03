@@ -10,7 +10,7 @@ export function PatientProvider({ children }) {
   const [orders, setOrders] = useState([]);
   const [vitals, setVitals] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     // In a real app, this would fetch data from an API
     // For demo purposes, we'll use mock data
@@ -21,7 +21,7 @@ export function PatientProvider({ children }) {
       { id: 4, name: 'Emily Chen', dob: '1987-04-10', gender: 'Female', mrn: 'MRN901234', address: '101 Cedar St, Newtown, USA', phone: '(555) 456-7890' },
       { id: 5, name: 'Michael Thompson', dob: '1975-06-22', gender: 'Male', mrn: 'MRN567890', address: '202 Maple Dr, Lastcity, USA', phone: '(555) 567-8901' },
     ];
-    
+
     const mockNotes = [
       { id: 1, patientId: 1, patientName: 'James Wilson', date: '2025-04-30', title: 'Routine Check-up', content: 'Patient presents for routine follow-up for hypertension and diabetes. Both conditions appear well-controlled with current medication regimen. Blood pressure is 125/82, which is within target range. A1C is 6.7%, showing good glycemic control.' },
       { id: 2, patientId: 1, patientName: 'James Wilson', date: '2025-03-15', title: 'Medication Review', content: 'Reviewed current medications with patient. No reported side effects from Lisinopril or Metformin. Patient reports taking medications as prescribed. Refilled both medications for 90 days.' },
@@ -29,7 +29,7 @@ export function PatientProvider({ children }) {
       { id: 4, patientId: 3, patientName: 'Robert Davis', date: '2025-04-15', title: 'Follow-up Visit', content: 'Follow-up for COPD. Patient reports slight improvement in breathing with new inhaler. Still experiences shortness of breath with moderate exertion. Oxygen saturation 94% at rest. Discussed smoking cessation strategies.' },
       { id: 5, patientId: 4, patientName: 'Emily Chen', date: '2025-04-10', title: 'New Patient Visit', content: 'Initial consultation with new patient. Medical history taken. Patient reports occasional migraine headaches, otherwise healthy. Family history significant for hypertension and diabetes. Created care plan for migraine management.' },
     ];
-    
+
     const mockOrders = [
       { id: 1, patientId: 1, patientName: 'James Wilson', date: '2025-04-30', type: 'Laboratory Test', status: 'Pending', dueDate: '2025-05-10', details: 'Comprehensive metabolic panel and A1C' },
       { id: 2, patientId: 1, patientName: 'James Wilson', date: '2025-03-15', type: 'Imaging', status: 'Completed', completedDate: '2025-03-22', results: 'Chest X-Ray: Normal findings, no abnormalities detected' },
@@ -39,11 +39,11 @@ export function PatientProvider({ children }) {
       { id: 6, patientId: 5, patientName: 'Michael Thompson', date: '2025-04-05', type: 'Procedure', status: 'Pending', dueDate: '2025-05-05', details: 'Echocardiogram: Follow-up for mitral valve regurgitation' },
       { id: 7, patientId: 2, patientName: 'Sarah Johnson', date: '2025-04-01', type: 'Laboratory Test', status: 'Completed', completedDate: '2025-04-03', results: 'CBC: Within normal limits' },
     ];
-    
+
     const mockVitals = [
-      { 
-        id: 1, 
-        patientId: 1, 
+      {
+        id: 1,
+        patientId: 1,
         patientName: 'James Wilson',
         date: '2025-04-30',
         bp: '125/82',
@@ -56,9 +56,9 @@ export function PatientProvider({ children }) {
         respiratoryRate: 16,
         pain: 0
       },
-      { 
-        id: 2, 
-        patientId: 1, 
+      {
+        id: 2,
+        patientId: 1,
         patientName: 'James Wilson',
         date: '2025-03-15',
         bp: '130/85',
@@ -71,9 +71,9 @@ export function PatientProvider({ children }) {
         respiratoryRate: 16,
         pain: 0
       },
-      { 
-        id: 3, 
-        patientId: 2, 
+      {
+        id: 3,
+        patientId: 2,
         patientName: 'Sarah Johnson',
         date: '2025-04-22',
         bp: '118/75',
@@ -86,9 +86,9 @@ export function PatientProvider({ children }) {
         respiratoryRate: 14,
         pain: 0
       },
-      { 
-        id: 4, 
-        patientId: 3, 
+      {
+        id: 4,
+        patientId: 3,
         patientName: 'Robert Davis',
         date: '2025-04-15',
         bp: '145/88',
@@ -101,9 +101,9 @@ export function PatientProvider({ children }) {
         respiratoryRate: 18,
         pain: 2
       },
-      { 
-        id: 5, 
-        patientId: 4, 
+      {
+        id: 5,
+        patientId: 4,
         patientName: 'Emily Chen',
         date: '2025-04-10',
         bp: '110/70',
@@ -117,14 +117,14 @@ export function PatientProvider({ children }) {
         pain: 3
       },
     ];
-    
+
     setPatients(mockPatients);
     setNotes(mockNotes);
     setOrders(mockOrders);
     setVitals(mockVitals);
     setLoading(false);
   }, []);
-  
+
   // Add a new patient
   const addPatient = (patient) => {
     const newPatient = {
@@ -134,12 +134,12 @@ export function PatientProvider({ children }) {
     setPatients([...patients, newPatient]);
     return newPatient;
   };
-  
+
   // Get a patient by ID
   const getPatient = (id) => {
     return patients.find(patient => patient.id === parseInt(id));
   };
-  
+
   // Add a new note
   const addNote = (note) => {
     const newNote = {
@@ -149,12 +149,12 @@ export function PatientProvider({ children }) {
     setNotes([...notes, newNote]);
     return newNote;
   };
-  
+
   // Get notes for a patient
   const getPatientNotes = (patientId) => {
     return notes.filter(note => note.patientId === parseInt(patientId));
   };
-  
+
   // Add a new order
   const addOrder = (order) => {
     const newOrder = {
@@ -164,12 +164,12 @@ export function PatientProvider({ children }) {
     setOrders([...orders, newOrder]);
     return newOrder;
   };
-  
+
   // Get orders for a patient
   const getPatientOrders = (patientId) => {
     return orders.filter(order => order.patientId === parseInt(patientId));
   };
-  
+
   // Add new vitals
   const addVitals = (vitalsData) => {
     const newVitals = {
@@ -179,12 +179,12 @@ export function PatientProvider({ children }) {
     setVitals([...vitals, newVitals]);
     return newVitals;
   };
-  
+
   // Get vitals for a patient
   const getPatientVitals = (patientId) => {
     return vitals.filter(v => v.patientId === parseInt(patientId));
   };
-  
+
   const value = {
     patients,
     notes,
@@ -200,7 +200,7 @@ export function PatientProvider({ children }) {
     addVitals,
     getPatientVitals
   };
-  
+
   return (
     <PatientContext.Provider value={value}>
       {children}
@@ -209,10 +209,10 @@ export function PatientProvider({ children }) {
 }
 
 // Custom hook to use the patient context
-export function usePatients() {
+export function usePatient() {
   const context = useContext(PatientContext);
   if (context === undefined) {
-    throw new Error('usePatients must be used within a PatientProvider');
+    throw new Error('usePatient must be used within a PatientProvider');
   }
   return context;
 }
