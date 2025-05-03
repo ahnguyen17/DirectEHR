@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import PatientList from './pages/PatientList';
 import PatientDetail from './pages/PatientDetail';
 import AddPatient from './pages/AddPatient';
+import EditPatient from './pages/EditPatient';
 import NotesPage from './pages/NotesPage';
 import AddNote from './pages/AddNote';
 import OrdersPage from './pages/OrdersPage';
@@ -30,6 +31,7 @@ function App() {
             <Route index element={<PatientList />} />
             <Route path=":id" element={<PatientDetail />} />
             <Route path="new" element={<AddPatient />} />
+            <Route path=":id/edit" element={<EditPatient />} />
             <Route path=":id/vitals" element={<RecordVitals />} />
             <Route path=":id/notes/new" element={<AddNote />} />
             <Route path=":id/orders/new" element={<AddOrder />} />

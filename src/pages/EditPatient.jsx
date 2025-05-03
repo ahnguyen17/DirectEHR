@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
 
-export default function AddPatient() {
+export default function EditPatient() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { addPatient } = usePatient();
-
+  const { getPatient, updatePatient } = usePatient();
+  const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState({
     name: '',
     dob: '',
@@ -21,6 +22,31 @@ export default function AddPatient() {
     allergies: '',
     primaryCareProvider: ''
   });
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        setLoading(true);
+        const patientData = await getPatient(id);
+        
+        // Format allergies as a string for the form
+        const allergiesString = Array.isArray(patientData.allergies) 
+          ? patientData.allergies.join(', ') 
+          : patientData.allergies || '';
+        
+        setPatient({
+          ...patientData,
+          allergies: allergiesString
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching patient:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [id, getPatient]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,29 +66,28 @@ export default function AddPatient() {
         allergies: patient.allergies ? patient.allergies.split(',').map(allergy => allergy.trim()) : []
       };
 
-      // Add the patient
-      const newPatient = await addPatient(formattedPatient);
+      // Update the patient
+      await updatePatient(id, formattedPatient);
 
       // Navigate to the patient detail page
-      navigate(`/patients/${newPatient.id}`);
+      navigate(`/patients/${id}`);
     } catch (error) {
-      console.error('Error adding patient:', error);
+      console.error('Error updating patient:', error);
       // You could add error handling UI here
     }
   };
 
-  const generateMRN = () => {
-    const prefix = 'MRN';
-    const randomDigits = Math.floor(100000 + Math.random() * 900000);
-    setPatient({
-      ...patient,
-      mrn: `${prefix}${randomDigits}`
-    });
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">Loading patient information...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Add New Patient</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Edit Patient</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -100,38 +125,30 @@ export default function AddPatient() {
             <select
               id="gender"
               name="gender"
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               value={patient.gender}
               onChange={handleChange}
+              required
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
-              <option value="Prefer not to say">Prefer not to say</option>
             </select>
           </div>
 
           {/* MRN */}
           <div>
             <label htmlFor="mrn" className="block text-sm font-medium text-gray-700">Medical Record Number (MRN)</label>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              <input
-                type="text"
-                id="mrn"
-                name="mrn"
-                className="flex-1 block w-full border border-gray-300 rounded-l-md shadow-sm p-2"
-                value={patient.mrn}
-                onChange={handleChange}
-                required
-              />
-              <button
-                type="button"
-                className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-500 text-sm"
-                onClick={generateMRN}
-              >
-                Generate
-              </button>
-            </div>
+            <input
+              type="text"
+              id="mrn"
+              name="mrn"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              value={patient.mrn}
+              onChange={handleChange}
+              required
+              readOnly
+            />
           </div>
         </div>
 
@@ -154,7 +171,7 @@ export default function AddPatient() {
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
               <input
                 type="tel"
                 id="phone"
@@ -162,7 +179,6 @@ export default function AddPatient() {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 value={patient.phone}
                 onChange={handleChange}
-                placeholder="(555) 123-4567"
               />
             </div>
 
@@ -176,34 +192,6 @@ export default function AddPatient() {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 value={patient.email}
                 onChange={handleChange}
-                placeholder="patient@example.com"
-              />
-            </div>
-
-            {/* Emergency Contact */}
-            <div>
-              <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700">Emergency Contact</label>
-              <input
-                type="text"
-                id="emergencyContact"
-                name="emergencyContact"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                value={patient.emergencyContact}
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* Emergency Phone */}
-            <div>
-              <label htmlFor="emergencyPhone" className="block text-sm font-medium text-gray-700">Emergency Phone</label>
-              <input
-                type="tel"
-                id="emergencyPhone"
-                name="emergencyPhone"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                value={patient.emergencyPhone}
-                onChange={handleChange}
-                placeholder="(555) 123-4567"
               />
             </div>
           </div>
@@ -235,6 +223,32 @@ export default function AddPatient() {
                 name="policyNumber"
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 value={patient.policyNumber}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Emergency Contact */}
+            <div>
+              <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+              <input
+                type="text"
+                id="emergencyContact"
+                name="emergencyContact"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                value={patient.emergencyContact}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Emergency Phone */}
+            <div>
+              <label htmlFor="emergencyPhone" className="block text-sm font-medium text-gray-700">Emergency Contact Phone</label>
+              <input
+                type="tel"
+                id="emergencyPhone"
+                name="emergencyPhone"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                value={patient.emergencyPhone}
                 onChange={handleChange}
               />
             </div>
@@ -279,11 +293,11 @@ export default function AddPatient() {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => navigate('/patients')}
+            onClick={() => navigate(`/patients/${id}`)}
           >
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary">Add Patient</button>
+          <button type="submit" className="btn btn-primary">Save Changes</button>
         </div>
       </form>
     </div>

@@ -20,51 +20,64 @@ export default function AddNote() {
   });
 
   useEffect(() => {
-    if (id) {
-      const patientData = getPatient(id);
-      setPatient(patientData);
-    }
-  }, [id, getPatient]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Generate content from structured fields if using a template
-    let formattedContent = note.content;
-
-    if (note.category !== 'Free Text') {
-      formattedContent = `# ${note.title}\n\n`;
-
-      if (note.chiefComplaint) {
-        formattedContent += `## Chief Complaint\n${note.chiefComplaint}\n\n`;
+    const fetchPatient = async () => {
+      if (id) {
+        try {
+          const patientData = await getPatient(id);
+          setPatient(patientData);
+        } catch (error) {
+          console.error('Error fetching patient:', error);
+        }
       }
-
-      if (note.history) {
-        formattedContent += `## History\n${note.history}\n\n`;
-      }
-
-      if (note.examination) {
-        formattedContent += `## Examination\n${note.examination}\n\n`;
-      }
-
-      if (note.assessment) {
-        formattedContent += `## Assessment\n${note.assessment}\n\n`;
-      }
-
-      if (note.plan) {
-        formattedContent += `## Plan\n${note.plan}\n\n`;
-      }
-    }
-
-    const newNote = {
-      patientId: id ? parseInt(id) : null,
-      patientName: patient ? patient.name : '',
-      ...note,
-      content: formattedContent
     };
 
-    addNote(newNote);
-    navigate(id ? `/patients/${id}` : '/notes');
+    fetchPatient();
+  }, [id, getPatient]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Generate content from structured fields if using a template
+      let formattedContent = note.content;
+
+      if (note.category !== 'Free Text') {
+        formattedContent = `# ${note.title}\n\n`;
+
+        if (note.chiefComplaint) {
+          formattedContent += `## Chief Complaint\n${note.chiefComplaint}\n\n`;
+        }
+
+        if (note.history) {
+          formattedContent += `## History\n${note.history}\n\n`;
+        }
+
+        if (note.examination) {
+          formattedContent += `## Examination\n${note.examination}\n\n`;
+        }
+
+        if (note.assessment) {
+          formattedContent += `## Assessment\n${note.assessment}\n\n`;
+        }
+
+        if (note.plan) {
+          formattedContent += `## Plan\n${note.plan}\n\n`;
+        }
+      }
+
+      const newNote = {
+        patientId: id ? parseInt(id) : null,
+        patientName: patient ? patient.name : '',
+        ...note,
+        content: formattedContent
+      };
+
+      await addNote(newNote);
+      navigate(id ? `/patients/${id}` : '/notes');
+    } catch (error) {
+      console.error('Error adding note:', error);
+      // You could add error handling UI here
+    }
   };
 
   const handleTemplateChange = (e) => {

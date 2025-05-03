@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 
 export default function RecordVitals() {
   const navigate = useNavigate();

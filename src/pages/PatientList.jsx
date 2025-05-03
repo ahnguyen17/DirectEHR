@@ -1,45 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UserCircleIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { usePatient } from '../context/PatientContext';
 
 export default function PatientList() {
-  const [patients, setPatients] = useState([]);
+  const { patients, loading } = usePatient();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  useEffect(() => {
-    // In a real app, this would fetch data from an API
-    const mockPatients = [
-      { id: 1, name: 'James Wilson', dob: '1980-05-15', gender: 'Male', mrn: 'MRN123456' },
-      { id: 2, name: 'Sarah Johnson', dob: '1993-08-21', gender: 'Female', mrn: 'MRN789012' },
-      { id: 3, name: 'Robert Davis', dob: '1958-12-03', gender: 'Male', mrn: 'MRN345678' },
-      { id: 4, name: 'Emily Chen', dob: '1987-04-10', gender: 'Female', mrn: 'MRN901234' },
-      { id: 5, name: 'Michael Thompson', dob: '1975-06-22', gender: 'Male', mrn: 'MRN567890' },
-      { id: 6, name: 'Lisa Rodriguez', dob: '1990-11-18', gender: 'Female', mrn: 'MRN234567' },
-      { id: 7, name: 'David Kim', dob: '1965-01-30', gender: 'Male', mrn: 'MRN890123' },
-      { id: 8, name: 'Jessica Lee', dob: '1982-09-05', gender: 'Female', mrn: 'MRN456789' },
-    ];
-    
-    setPatients(mockPatients);
-  }, []);
-  
-  const filteredPatients = patients.filter(patient => 
+
+  const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.mrn.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   const calculateAge = (dob) => {
     const birthDate = new Date(dob);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const month = today.getMonth() - birthDate.getMonth();
-    
+
     if (month < 0 || (month === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   };
-  
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">Loading patients...</div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -66,7 +59,7 @@ export default function PatientList() {
           </Link>
         </div>
       </div>
-      
+
       <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {filteredPatients.length > 0 ? (

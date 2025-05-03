@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   UserCircleIcon,
   ChartBarIcon,
@@ -8,62 +8,70 @@ import {
   PencilIcon,
   PlusIcon,
   BeakerIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  TrashIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { usePatient } from '../context/PatientContext';
 import { useLabs } from '../context/LabsContext';
 import { useDiagnostics } from '../context/DiagnosticsContext';
+import VitalsTrends from '../components/VitalsTrends';
 
 export default function PatientDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, deletePatient } = usePatient();
   const { getPatientLabResults } = useLabs();
   const { getPatientDiagnostics } = useDiagnostics();
 
   useEffect(() => {
-    // In a real app, this would fetch data from an API
-    setTimeout(() => {
-      // Mock patient data
-      const mockPatient = {
-        id: parseInt(id),
-        name: 'James Wilson',
-        dob: '1980-05-15',
-        gender: 'Male',
-        mrn: 'MRN123456',
-        address: '123 Main St, Anytown, USA',
-        phone: '(555) 123-4567',
-        insurance: 'Blue Cross Blue Shield',
-        policyNumber: 'BCBS987654321',
-        allergies: ['Penicillin', 'Peanuts'],
-        medicalHistory: [
-          { condition: 'Hypertension', diagnosedDate: '2018-03-10', status: 'Active' },
-          { condition: 'Type 2 Diabetes', diagnosedDate: '2019-05-22', status: 'Active' },
-          { condition: 'Appendectomy', diagnosedDate: '2010-11-05', status: 'Resolved' },
-        ],
-        medications: [
-          { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', startDate: '2018-03-15' },
-          { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', startDate: '2019-05-30' },
-        ],
-        vitals: [
-          { date: '2025-04-30', bp: '125/82', pulse: 72, temp: 98.6, weight: 180, height: 70, bmi: 25.8 },
-          { date: '2025-03-15', bp: '130/85', pulse: 75, temp: 98.4, weight: 182, height: 70, bmi: 26.1 },
-          { date: '2025-01-22', bp: '128/84', pulse: 74, temp: 98.7, weight: 185, height: 70, bmi: 26.5 },
-        ],
-        notes: [
-          { id: 1, date: '2025-04-30', title: 'Routine Check-up', content: 'Patient presents for routine follow-up for hypertension and diabetes. Both conditions appear well-controlled with current medication regimen. Blood pressure is 125/82, which is within target range. A1C is 6.7%, showing good glycemic control.' },
-          { id: 2, date: '2025-03-15', title: 'Medication Review', content: 'Reviewed current medications with patient. No reported side effects from Lisinopril or Metformin. Patient reports taking medications as prescribed. Refilled both medications for 90 days.' },
-        ],
-        orders: [
-          { id: 1, date: '2025-04-30', type: 'Blood Test', status: 'Pending', dueDate: '2025-05-10', details: 'Comprehensive metabolic panel and A1C' },
-          { id: 2, date: '2025-03-15', type: 'Chest X-Ray', status: 'Completed', completedDate: '2025-03-22', results: 'Normal findings, no abnormalities detected' },
-        ],
-      };
+    const fetchPatientData = async () => {
+      try {
+        setLoading(true);
 
-      setPatient(mockPatient);
-      setLoading(false);
-    }, 500);
-  }, [id]);
+        // Fetch patient data
+        const patientData = await getPatient(id);
+
+        if (patientData) {
+          // Fetch related data
+          const notes = await getPatientNotes(id);
+          const orders = await getPatientOrders(id);
+          const vitals = await getPatientVitals(id);
+
+          // Create a complete patient object with all related data
+          const completePatient = {
+            ...patientData,
+            notes: notes || [],
+            orders: orders || [],
+            vitals: vitals || [],
+            // Add default medical history and medications if not present
+            medicalHistory: patientData.medicalHistory || [
+              { condition: 'Hypertension', diagnosedDate: '2018-03-10', status: 'Active' },
+              { condition: 'Type 2 Diabetes', diagnosedDate: '2019-05-22', status: 'Active' },
+              { condition: 'Appendectomy', diagnosedDate: '2010-11-05', status: 'Resolved' },
+            ],
+            medications: patientData.medications || [
+              { name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', startDate: '2018-03-15' },
+              { name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', startDate: '2019-05-30' },
+            ]
+          };
+
+          setPatient(completePatient);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching patient data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchPatientData();
+  }, [id, getPatient, getPatientNotes, getPatientOrders, getPatientVitals]);
 
   if (loading) {
     return (
@@ -105,6 +113,26 @@ export default function PatientDetail() {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deletePatient(id);
+      setShowDeleteModal(false);
+      navigate('/patients');
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      // You could add error handling UI here
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   return (
     <div>
       {/* Patient header */}
@@ -121,10 +149,19 @@ export default function PatientDetail() {
               </div>
             </div>
           </div>
-          <Link to={`/patients/${patient.id}/edit`} className="btn btn-secondary inline-flex items-center">
-            <PencilIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
-            Edit
-          </Link>
+          <div className="flex space-x-2">
+            <Link to={`/patients/${patient.id}/edit`} className="btn btn-secondary inline-flex items-center">
+              <PencilIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
+              Edit
+            </Link>
+            <button
+              onClick={handleDeleteClick}
+              className="btn btn-danger inline-flex items-center"
+            >
+              <TrashIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
+              Delete
+            </button>
+          </div>
         </div>
       </div>
 
@@ -250,7 +287,7 @@ export default function PatientDetail() {
                 <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
               </div>
               <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-                {patient.allergies.length > 0 ? (
+                {patient.allergies && patient.allergies.length > 0 ? (
                   <ul className="list-disc pl-5 space-y-1">
                     {patient.allergies.map((allergy, index) => (
                       <li key={index} className="text-sm text-gray-700">{allergy}</li>
@@ -270,7 +307,7 @@ export default function PatientDetail() {
               </div>
               <div className="border-t border-gray-200">
                 <ul className="divide-y divide-gray-200">
-                  {patient.medicalHistory.map((condition, index) => (
+                  {patient.medicalHistory && patient.medicalHistory.map((condition, index) => (
                     <li key={index} className="px-4 py-4">
                       <div className="flex justify-between">
                         <div>
@@ -315,7 +352,7 @@ export default function PatientDetail() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {patient.medications.map((medication, index) => (
+                  {patient.medications && patient.medications.map((medication, index) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {medication.name}
@@ -342,13 +379,13 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Vitals History</h2>
-            <button className="btn btn-primary inline-flex items-center">
+            <Link to={`/patients/${patient.id}/vitals`} className="btn btn-primary inline-flex items-center">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Record New Vitals
-            </button>
+            </Link>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -373,7 +410,7 @@ export default function PatientDetail() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {patient.vitals.map((vital, index) => (
+                {patient.vitals && patient.vitals.map((vital, index) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatDate(vital.date)}
@@ -399,9 +436,10 @@ export default function PatientDetail() {
             </table>
           </div>
 
-          {/* Vitals Charts would go here in a real implementation */}
-          <div className="mt-6 p-6 bg-white shadow sm:rounded-lg">
-            <p className="text-gray-500">Vitals trend charts would be displayed here using Chart.js</p>
+          {/* Vitals Trends Charts */}
+          <div className="mt-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Vitals Trends</h3>
+            <VitalsTrends vitals={patient.vitals} />
           </div>
         </div>
       )}
@@ -417,7 +455,7 @@ export default function PatientDetail() {
           </div>
 
           <div className="space-y-6">
-            {patient.notes.length > 0 ? (
+            {patient.notes && patient.notes.length > 0 ? (
               patient.notes.map((note) => (
                 <div key={note.id} className="bg-white shadow overflow-hidden sm:rounded-lg">
                   <div className="px-4 py-5 sm:px-6 flex justify-between items-start">
@@ -476,7 +514,7 @@ export default function PatientDetail() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {patient.orders.map((order) => (
+                {patient.orders && patient.orders.map((order) => (
                   <tr key={order.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatDate(order.date)}
@@ -516,11 +554,26 @@ export default function PatientDetail() {
           </div>
 
           {(() => {
-            const labResults = getPatientLabResults(patient.id);
+            // Use an empty array as a fallback if the function call fails
+            const [labResults, setLabResults] = useState([]);
+
+            useEffect(() => {
+              const fetchLabResults = async () => {
+                try {
+                  const results = await getPatientLabResults(patient.id);
+                  setLabResults(results || []);
+                } catch (error) {
+                  console.error('Error fetching lab results:', error);
+                  setLabResults([]);
+                }
+              };
+
+              fetchLabResults();
+            }, [patient.id]);
 
             return (
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                {labResults.length > 0 ? (
+                {labResults && labResults.length > 0 ? (
                   <div>
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -652,11 +705,26 @@ export default function PatientDetail() {
           </div>
 
           {(() => {
-            const diagnostics = getPatientDiagnostics(patient.id);
+            // Use an empty array as a fallback if the function call fails
+            const [diagnostics, setDiagnostics] = useState([]);
+
+            useEffect(() => {
+              const fetchDiagnostics = async () => {
+                try {
+                  const results = await getPatientDiagnostics(patient.id);
+                  setDiagnostics(results || []);
+                } catch (error) {
+                  console.error('Error fetching diagnostics:', error);
+                  setDiagnostics([]);
+                }
+              };
+
+              fetchDiagnostics();
+            }, [patient.id]);
 
             return (
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                {diagnostics.length > 0 ? (
+                {diagnostics && diagnostics.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -719,6 +787,38 @@ export default function PatientDetail() {
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center justify-center text-red-600 mb-4">
+              <ExclamationTriangleIcon className="h-12 w-12" aria-hidden="true" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 text-center mb-2">Delete Patient</h3>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              Are you sure you want to delete {patient.name}? This action cannot be undone.
+              All associated data (notes, orders, vitals, etc.) will also be deleted.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleConfirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
