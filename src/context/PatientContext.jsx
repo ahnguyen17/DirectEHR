@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { patientApi, noteApi, orderApi, vitalApi } from '../services/api';
 
 // Create a context
 const PatientContext = createContext();
@@ -116,33 +117,30 @@ export function PatientProvider({ children }) {
   const [vitals, setVitals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data from localStorage on initial render
+  // Load data from API on initial render
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
         // Load patients
-        const storedPatients = localStorage.getItem('ehr_patients');
-        const parsedPatients = storedPatients ? JSON.parse(storedPatients) : defaultPatients;
-        setPatients(parsedPatients);
+        const patientsData = await patientApi.getAll();
+        setPatients(patientsData.length > 0 ? patientsData : defaultPatients);
 
         // Load notes
-        const storedNotes = localStorage.getItem('ehr_notes');
-        const parsedNotes = storedNotes ? JSON.parse(storedNotes) : defaultNotes;
-        setNotes(parsedNotes);
+        const notesData = await noteApi.getAll();
+        setNotes(notesData.length > 0 ? notesData : defaultNotes);
 
         // Load orders
-        const storedOrders = localStorage.getItem('ehr_orders');
-        const parsedOrders = storedOrders ? JSON.parse(storedOrders) : defaultOrders;
-        setOrders(parsedOrders);
+        const ordersData = await orderApi.getAll();
+        setOrders(ordersData.length > 0 ? ordersData : defaultOrders);
 
         // Load vitals
-        const storedVitals = localStorage.getItem('ehr_vitals');
-        const parsedVitals = storedVitals ? JSON.parse(storedVitals) : defaultVitals;
-        setVitals(parsedVitals);
+        const vitalsData = await vitalApi.getAll();
+        setVitals(vitalsData.length > 0 ? vitalsData : defaultVitals);
 
         setLoading(false);
       } catch (error) {
-        console.error('Error loading data from localStorage:', error);
+        console.error('Error loading data from API:', error);
         // Fallback to default data if there's an error
         setPatients(defaultPatients);
         setNotes(defaultNotes);
@@ -155,149 +153,212 @@ export function PatientProvider({ children }) {
     loadData();
   }, []);
 
-  // Save data to localStorage
-  const saveToLocalStorage = (key, data) => {
+  // Add a new patient
+  const addPatient = async (patient) => {
     try {
-      localStorage.setItem(key, JSON.stringify(data));
+      const newPatient = await patientApi.create(patient);
+      setPatients([...patients, newPatient]);
+      return newPatient;
     } catch (error) {
-      console.error(`Error saving ${key} to localStorage:`, error);
+      console.error('Error adding patient:', error);
+      throw error;
     }
   };
 
-  // Add a new patient
-  const addPatient = (patient) => {
-    const newPatient = {
-      id: patients.length > 0 ? Math.max(...patients.map(p => p.id)) + 1 : 1,
-      ...patient
-    };
-    const updatedPatients = [...patients, newPatient];
-    setPatients(updatedPatients);
-    saveToLocalStorage('ehr_patients', updatedPatients);
-    return newPatient;
-  };
-
   // Get a patient by ID
-  const getPatient = (id) => {
-    return patients.find(patient => patient.id === parseInt(id));
+  const getPatient = async (id) => {
+    try {
+      // First check if we have it in state
+      const cachedPatient = patients.find(patient => patient.id === parseInt(id));
+      if (cachedPatient) return cachedPatient;
+
+      // If not, fetch from API
+      return await patientApi.getById(id);
+    } catch (error) {
+      console.error(`Error getting patient ${id}:`, error);
+      throw error;
+    }
   };
 
   // Update a patient
-  const updatePatient = (id, updatedData) => {
-    const updatedPatients = patients.map(patient =>
-      patient.id === parseInt(id) ? { ...patient, ...updatedData } : patient
-    );
-    setPatients(updatedPatients);
-    saveToLocalStorage('ehr_patients', updatedPatients);
-    return getPatient(id);
+  const updatePatient = async (id, updatedData) => {
+    try {
+      const updatedPatient = await patientApi.update(id, updatedData);
+      setPatients(patients.map(patient =>
+        patient.id === parseInt(id) ? updatedPatient : patient
+      ));
+      return updatedPatient;
+    } catch (error) {
+      console.error(`Error updating patient ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete a patient
-  const deletePatient = (id) => {
-    const updatedPatients = patients.filter(patient => patient.id !== parseInt(id));
-    setPatients(updatedPatients);
-    saveToLocalStorage('ehr_patients', updatedPatients);
+  const deletePatient = async (id) => {
+    try {
+      await patientApi.delete(id);
+      setPatients(patients.filter(patient => patient.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting patient ${id}:`, error);
+      throw error;
+    }
   };
 
   // Add a new note
-  const addNote = (note) => {
-    const newNote = {
-      id: notes.length > 0 ? Math.max(...notes.map(n => n.id)) + 1 : 1,
-      ...note
-    };
-    const updatedNotes = [...notes, newNote];
-    setNotes(updatedNotes);
-    saveToLocalStorage('ehr_notes', updatedNotes);
-    return newNote;
+  const addNote = async (note) => {
+    try {
+      const newNote = await noteApi.create(note);
+      setNotes([...notes, newNote]);
+      return newNote;
+    } catch (error) {
+      console.error('Error adding note:', error);
+      throw error;
+    }
   };
 
   // Get notes for a patient
-  const getPatientNotes = (patientId) => {
-    return notes.filter(note => note.patientId === parseInt(patientId));
+  const getPatientNotes = async (patientId) => {
+    try {
+      // First check if we have them in state
+      const cachedNotes = notes.filter(note => note.patientId === parseInt(patientId));
+      if (cachedNotes.length > 0) return cachedNotes;
+
+      // If not, fetch from API
+      return await noteApi.getByPatientId(patientId);
+    } catch (error) {
+      console.error(`Error getting notes for patient ${patientId}:`, error);
+      throw error;
+    }
   };
 
   // Update a note
-  const updateNote = (id, updatedData) => {
-    const updatedNotes = notes.map(note =>
-      note.id === parseInt(id) ? { ...note, ...updatedData } : note
-    );
-    setNotes(updatedNotes);
-    saveToLocalStorage('ehr_notes', updatedNotes);
-    return notes.find(note => note.id === parseInt(id));
+  const updateNote = async (id, updatedData) => {
+    try {
+      const updatedNote = await noteApi.update(id, updatedData);
+      setNotes(notes.map(note =>
+        note.id === parseInt(id) ? updatedNote : note
+      ));
+      return updatedNote;
+    } catch (error) {
+      console.error(`Error updating note ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete a note
-  const deleteNote = (id) => {
-    const updatedNotes = notes.filter(note => note.id !== parseInt(id));
-    setNotes(updatedNotes);
-    saveToLocalStorage('ehr_notes', updatedNotes);
+  const deleteNote = async (id) => {
+    try {
+      await noteApi.delete(id);
+      setNotes(notes.filter(note => note.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting note ${id}:`, error);
+      throw error;
+    }
   };
 
   // Add a new order
-  const addOrder = (order) => {
-    const newOrder = {
-      id: orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1,
-      ...order
-    };
-    const updatedOrders = [...orders, newOrder];
-    setOrders(updatedOrders);
-    saveToLocalStorage('ehr_orders', updatedOrders);
-    return newOrder;
+  const addOrder = async (order) => {
+    try {
+      const newOrder = await orderApi.create(order);
+      setOrders([...orders, newOrder]);
+      return newOrder;
+    } catch (error) {
+      console.error('Error adding order:', error);
+      throw error;
+    }
   };
 
   // Get orders for a patient
-  const getPatientOrders = (patientId) => {
-    return orders.filter(order => order.patientId === parseInt(patientId));
+  const getPatientOrders = async (patientId) => {
+    try {
+      // First check if we have them in state
+      const cachedOrders = orders.filter(order => order.patientId === parseInt(patientId));
+      if (cachedOrders.length > 0) return cachedOrders;
+
+      // If not, fetch from API
+      return await orderApi.getByPatientId(patientId);
+    } catch (error) {
+      console.error(`Error getting orders for patient ${patientId}:`, error);
+      throw error;
+    }
   };
 
   // Update an order
-  const updateOrder = (id, updatedData) => {
-    const updatedOrders = orders.map(order =>
-      order.id === parseInt(id) ? { ...order, ...updatedData } : order
-    );
-    setOrders(updatedOrders);
-    saveToLocalStorage('ehr_orders', updatedOrders);
-    return orders.find(order => order.id === parseInt(id));
+  const updateOrder = async (id, updatedData) => {
+    try {
+      const updatedOrder = await orderApi.update(id, updatedData);
+      setOrders(orders.map(order =>
+        order.id === parseInt(id) ? updatedOrder : order
+      ));
+      return updatedOrder;
+    } catch (error) {
+      console.error(`Error updating order ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete an order
-  const deleteOrder = (id) => {
-    const updatedOrders = orders.filter(order => order.id !== parseInt(id));
-    setOrders(updatedOrders);
-    saveToLocalStorage('ehr_orders', updatedOrders);
+  const deleteOrder = async (id) => {
+    try {
+      await orderApi.delete(id);
+      setOrders(orders.filter(order => order.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting order ${id}:`, error);
+      throw error;
+    }
   };
 
   // Add new vitals
-  const addVitals = (vitalsData) => {
-    const newVitals = {
-      id: vitals.length > 0 ? Math.max(...vitals.map(v => v.id)) + 1 : 1,
-      ...vitalsData
-    };
-    const updatedVitals = [...vitals, newVitals];
-    setVitals(updatedVitals);
-    saveToLocalStorage('ehr_vitals', updatedVitals);
-    return newVitals;
+  const addVitals = async (vitalsData) => {
+    try {
+      const newVitals = await vitalApi.create(vitalsData);
+      setVitals([...vitals, newVitals]);
+      return newVitals;
+    } catch (error) {
+      console.error('Error adding vitals:', error);
+      throw error;
+    }
   };
 
   // Get vitals for a patient
-  const getPatientVitals = (patientId) => {
-    return vitals.filter(v => v.patientId === parseInt(patientId));
+  const getPatientVitals = async (patientId) => {
+    try {
+      // First check if we have them in state
+      const cachedVitals = vitals.filter(v => v.patientId === parseInt(patientId));
+      if (cachedVitals.length > 0) return cachedVitals;
+
+      // If not, fetch from API
+      return await vitalApi.getByPatientId(patientId);
+    } catch (error) {
+      console.error(`Error getting vitals for patient ${patientId}:`, error);
+      throw error;
+    }
   };
 
   // Update vitals
-  const updateVitals = (id, updatedData) => {
-    const updatedVitalsArray = vitals.map(v =>
-      v.id === parseInt(id) ? { ...v, ...updatedData } : v
-    );
-    setVitals(updatedVitalsArray);
-    saveToLocalStorage('ehr_vitals', updatedVitalsArray);
-    return vitals.find(v => v.id === parseInt(id));
+  const updateVitals = async (id, updatedData) => {
+    try {
+      const updatedVitals = await vitalApi.update(id, updatedData);
+      setVitals(vitals.map(v =>
+        v.id === parseInt(id) ? updatedVitals : v
+      ));
+      return updatedVitals;
+    } catch (error) {
+      console.error(`Error updating vitals ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete vitals
-  const deleteVitals = (id) => {
-    const updatedVitals = vitals.filter(v => v.id !== parseInt(id));
-    setVitals(updatedVitals);
-    saveToLocalStorage('ehr_vitals', updatedVitals);
+  const deleteVitals = async (id) => {
+    try {
+      await vitalApi.delete(id);
+      setVitals(vitals.filter(v => v.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting vitals ${id}:`, error);
+      throw error;
+    }
   };
 
   const value = {

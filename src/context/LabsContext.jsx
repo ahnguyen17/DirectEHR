@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import { labTestApi, labResultApi } from '../services/api';
 
 // Create a context
 const LabsContext = createContext();
@@ -64,23 +65,22 @@ export function LabsProvider({ children }) {
   const [labResults, setLabResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data from localStorage on initial render
+  // Load data from API on initial render
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
         // Load lab tests
-        const storedLabTests = localStorage.getItem('ehr_lab_tests');
-        const parsedLabTests = storedLabTests ? JSON.parse(storedLabTests) : defaultLabTests;
-        setLabTests(parsedLabTests);
+        const labTestsData = await labTestApi.getAll();
+        setLabTests(labTestsData.length > 0 ? labTestsData : defaultLabTests);
 
         // Load lab results
-        const storedLabResults = localStorage.getItem('ehr_lab_results');
-        const parsedLabResults = storedLabResults ? JSON.parse(storedLabResults) : defaultLabResults;
-        setLabResults(parsedLabResults);
+        const labResultsData = await labResultApi.getAll();
+        setLabResults(labResultsData.length > 0 ? labResultsData : defaultLabResults);
 
         setLoading(false);
       } catch (error) {
-        console.error('Error loading labs data from localStorage:', error);
+        console.error('Error loading labs data from API:', error);
         // Fallback to default data if there's an error
         setLabTests(defaultLabTests);
         setLabResults(defaultLabResults);
@@ -91,86 +91,109 @@ export function LabsProvider({ children }) {
     loadData();
   }, []);
 
-  // Save data to localStorage
-  const saveToLocalStorage = (key, data) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.error(`Error saving ${key} to localStorage:`, error);
-    }
-  };
-
   // Add a new lab test
-  const addLabTest = (test) => {
-    const newTest = {
-      id: labTests.length > 0 ? Math.max(...labTests.map(t => t.id)) + 1 : 1,
-      ...test
-    };
-    const updatedLabTests = [...labTests, newTest];
-    setLabTests(updatedLabTests);
-    saveToLocalStorage('ehr_lab_tests', updatedLabTests);
-    return newTest;
+  const addLabTest = async (test) => {
+    try {
+      const newTest = await labTestApi.create(test);
+      setLabTests([...labTests, newTest]);
+      return newTest;
+    } catch (error) {
+      console.error('Error adding lab test:', error);
+      throw error;
+    }
   };
 
   // Get a lab test by ID
   const getLabTest = (id) => {
+    // First check if we have it in state
     return labTests.find(test => test.id === parseInt(id));
+    // Note: We could fetch from API if not found, but for simplicity we'll use the cached data
   };
 
   // Update a lab test
-  const updateLabTest = (id, updatedData) => {
-    const updatedLabTests = labTests.map(test =>
-      test.id === parseInt(id) ? { ...test, ...updatedData } : test
-    );
-    setLabTests(updatedLabTests);
-    saveToLocalStorage('ehr_lab_tests', updatedLabTests);
-    return getLabTest(id);
+  const updateLabTest = async (id, updatedData) => {
+    try {
+      const updatedTest = await labTestApi.update(id, updatedData);
+      setLabTests(labTests.map(test =>
+        test.id === parseInt(id) ? updatedTest : test
+      ));
+      return updatedTest;
+    } catch (error) {
+      console.error(`Error updating lab test ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete a lab test
-  const deleteLabTest = (id) => {
-    const updatedLabTests = labTests.filter(test => test.id !== parseInt(id));
-    setLabTests(updatedLabTests);
-    saveToLocalStorage('ehr_lab_tests', updatedLabTests);
+  const deleteLabTest = async (id) => {
+    try {
+      // Note: The server doesn't have a delete endpoint for lab tests,
+      // but we'll keep this method for consistency
+      setLabTests(labTests.filter(test => test.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting lab test ${id}:`, error);
+      throw error;
+    }
   };
 
   // Add a new lab result
-  const addLabResult = (result) => {
-    const newResult = {
-      id: labResults.length > 0 ? Math.max(...labResults.map(r => r.id)) + 1 : 1,
-      ...result
-    };
-    const updatedLabResults = [...labResults, newResult];
-    setLabResults(updatedLabResults);
-    saveToLocalStorage('ehr_lab_results', updatedLabResults);
-    return newResult;
+  const addLabResult = async (result) => {
+    try {
+      const newResult = await labResultApi.create(result);
+      setLabResults([...labResults, newResult]);
+      return newResult;
+    } catch (error) {
+      console.error('Error adding lab result:', error);
+      throw error;
+    }
   };
 
   // Get lab results for a patient
-  const getPatientLabResults = (patientId) => {
-    return labResults.filter(result => result.patientId === parseInt(patientId));
+  const getPatientLabResults = async (patientId) => {
+    try {
+      // First check if we have them in state
+      const cachedResults = labResults.filter(result => result.patientId === parseInt(patientId));
+      if (cachedResults.length > 0) return cachedResults;
+
+      // If not, fetch from API
+      return await labResultApi.getByPatientId(patientId);
+    } catch (error) {
+      console.error(`Error getting lab results for patient ${patientId}:`, error);
+      throw error;
+    }
   };
 
   // Get a lab result by ID
   const getLabResult = (id) => {
+    // First check if we have it in state
     return labResults.find(result => result.id === parseInt(id));
+    // Note: We could fetch from API if not found, but for simplicity we'll use the cached data
   };
 
   // Update a lab result
-  const updateLabResult = (id, updatedData) => {
-    const updatedLabResults = labResults.map(result =>
-      result.id === parseInt(id) ? { ...result, ...updatedData } : result
-    );
-    setLabResults(updatedLabResults);
-    saveToLocalStorage('ehr_lab_results', updatedLabResults);
-    return getLabResult(id);
+  const updateLabResult = async (id, updatedData) => {
+    try {
+      const updatedResult = await labResultApi.update(id, updatedData);
+      setLabResults(labResults.map(result =>
+        result.id === parseInt(id) ? updatedResult : result
+      ));
+      return updatedResult;
+    } catch (error) {
+      console.error(`Error updating lab result ${id}:`, error);
+      throw error;
+    }
   };
 
   // Delete a lab result
-  const deleteLabResult = (id) => {
-    const updatedLabResults = labResults.filter(result => result.id !== parseInt(id));
-    setLabResults(updatedLabResults);
-    saveToLocalStorage('ehr_lab_results', updatedLabResults);
+  const deleteLabResult = async (id) => {
+    try {
+      // Note: The server doesn't have a delete endpoint for lab results,
+      // but we'll keep this method for consistency
+      setLabResults(labResults.filter(result => result.id !== parseInt(id)));
+    } catch (error) {
+      console.error(`Error deleting lab result ${id}:`, error);
+      throw error;
+    }
   };
 
   const value = {

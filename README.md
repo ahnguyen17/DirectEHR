@@ -8,6 +8,8 @@ A modern EHR application built with React and Tailwind CSS to manage patients, n
 - Medical notes
 - Vitals tracking with trends
 - Order management (labs, imaging, medications, etc.)
+- Diagnostics and lab results tracking
+- Server-side data persistence with a backend API
 - Responsive design for desktop and mobile
 
 ## Technologies Used
@@ -16,9 +18,12 @@ A modern EHR application built with React and Tailwind CSS to manage patients, n
 - React Router
 - Tailwind CSS
 - Context API for state management
+- Express.js for the backend API
 - Heroicons
 
 ## Installation
+
+### Frontend
 
 1. Clone the repository
 2. Install dependencies:
@@ -26,6 +31,25 @@ A modern EHR application built with React and Tailwind CSS to manage patients, n
    npm install
    ```
 3. Start the development server:
+   ```
+   npm run dev
+   ```
+
+### Backend
+
+1. Navigate to the server directory:
+   ```
+   cd server
+   ```
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Initialize the data files with default data (optional):
+   ```
+   node initData.js
+   ```
+4. Start the server:
    ```
    npm run dev
    ```
