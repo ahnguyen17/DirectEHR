@@ -16,6 +16,11 @@ import { usePatient } from '../context/PatientContext';
 import { useLabs } from '../context/LabsContext';
 import { useDiagnostics } from '../context/DiagnosticsContext';
 import VitalsTrends from '../components/VitalsTrends';
+import MedicalHistoryModal from '../components/MedicalHistoryModal';
+import FamilyHistoryModal from '../components/FamilyHistoryModal';
+import SocialHistoryModal from '../components/SocialHistoryModal';
+import AllergyModal from '../components/AllergyModal';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -24,7 +29,24 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, deletePatient } = usePatient();
+
+  // Modal states for history entries
+  const [showMedicalHistoryModal, setShowMedicalHistoryModal] = useState(false);
+  const [showSurgicalHistoryModal, setShowSurgicalHistoryModal] = useState(false);
+  const [showFamilyHistoryModal, setShowFamilyHistoryModal] = useState(false);
+  const [showSocialHistoryModal, setShowSocialHistoryModal] = useState(false);
+  const [showAllergyModal, setShowAllergyModal] = useState(false);
+  const [showDeleteEntryModal, setShowDeleteEntryModal] = useState(false);
+
+  // Selected entry for editing or deleting
+  const [selectedMedicalEntry, setSelectedMedicalEntry] = useState(null);
+  const [selectedSurgicalEntry, setSelectedSurgicalEntry] = useState(null);
+  const [selectedFamilyEntry, setSelectedFamilyEntry] = useState(null);
+  const [selectedAllergy, setSelectedAllergy] = useState(null);
+  const [deleteEntryType, setDeleteEntryType] = useState('');
+  const [deleteEntryIndex, setDeleteEntryIndex] = useState(null);
+
+  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, deletePatient, updatePatient } = usePatient();
   const { getPatientLabResults } = useLabs();
   const { getPatientDiagnostics } = useDiagnostics();
 
@@ -131,6 +153,240 @@ export default function PatientDetail() {
 
   const handleCancelDelete = () => {
     setShowDeleteModal(false);
+  };
+
+  // Medical History Handlers
+  const handleAddMedicalHistory = () => {
+    setSelectedMedicalEntry(null);
+    setShowMedicalHistoryModal(true);
+  };
+
+  const handleEditMedicalHistory = (entry) => {
+    setSelectedMedicalEntry(entry);
+    setShowMedicalHistoryModal(true);
+  };
+
+  const handleDeleteMedicalHistory = (entry, index) => {
+    setDeleteEntryType('medical');
+    setDeleteEntryIndex(index);
+    setSelectedMedicalEntry(entry);
+    setShowDeleteEntryModal(true);
+  };
+
+  const handleSaveMedicalHistory = async (formData, entryId) => {
+    try {
+      const updatedMedicalHistory = [...(patient.medicalHistory || [])];
+
+      if (entryId !== null) {
+        // Edit existing entry
+        const index = updatedMedicalHistory.findIndex(entry => entry === selectedMedicalEntry);
+        if (index !== -1) {
+          updatedMedicalHistory[index] = { ...formData };
+        }
+      } else {
+        // Add new entry
+        updatedMedicalHistory.push(formData);
+      }
+
+      const updatedPatient = { ...patient, medicalHistory: updatedMedicalHistory };
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+    } catch (error) {
+      console.error('Error updating medical history:', error);
+    }
+  };
+
+  // Surgical History Handlers
+  const handleAddSurgicalHistory = () => {
+    setSelectedSurgicalEntry(null);
+    setShowSurgicalHistoryModal(true);
+  };
+
+  const handleEditSurgicalHistory = (entry) => {
+    setSelectedSurgicalEntry(entry);
+    setShowSurgicalHistoryModal(true);
+  };
+
+  const handleDeleteSurgicalHistory = (entry, index) => {
+    setDeleteEntryType('surgical');
+    setDeleteEntryIndex(index);
+    setSelectedSurgicalEntry(entry);
+    setShowDeleteEntryModal(true);
+  };
+
+  const handleSaveSurgicalHistory = async (formData, entryId) => {
+    try {
+      const updatedMedicalHistory = [...(patient.medicalHistory || [])];
+
+      if (entryId !== null) {
+        // Edit existing entry
+        const index = updatedMedicalHistory.findIndex(entry => entry === selectedSurgicalEntry);
+        if (index !== -1) {
+          updatedMedicalHistory[index] = { ...formData, type: 'Surgical' };
+        }
+      } else {
+        // Add new entry
+        updatedMedicalHistory.push({ ...formData, type: 'Surgical' });
+      }
+
+      const updatedPatient = { ...patient, medicalHistory: updatedMedicalHistory };
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+    } catch (error) {
+      console.error('Error updating surgical history:', error);
+    }
+  };
+
+  // Family History Handlers
+  const handleAddFamilyHistory = () => {
+    setSelectedFamilyEntry(null);
+    setShowFamilyHistoryModal(true);
+  };
+
+  const handleEditFamilyHistory = (entry) => {
+    setSelectedFamilyEntry(entry);
+    setShowFamilyHistoryModal(true);
+  };
+
+  const handleDeleteFamilyHistory = (entry, index) => {
+    setDeleteEntryType('family');
+    setDeleteEntryIndex(index);
+    setSelectedFamilyEntry(entry);
+    setShowDeleteEntryModal(true);
+  };
+
+  const handleSaveFamilyHistory = async (formData, entryId) => {
+    try {
+      const updatedFamilyHistory = [...(patient.familyHistory || [])];
+
+      // Ensure relations is an array and not empty
+      if (!formData.relations || formData.relations.length === 0) {
+        // If using legacy format with single relation, convert it
+        if (formData.relation) {
+          formData.relations = [formData.relation];
+          delete formData.relation;
+        } else {
+          // Should not happen due to form validation, but just in case
+          formData.relations = [];
+        }
+      }
+
+      if (entryId !== null) {
+        // Edit existing entry
+        const index = updatedFamilyHistory.findIndex(entry => entry === selectedFamilyEntry);
+        if (index !== -1) {
+          updatedFamilyHistory[index] = { ...formData };
+        }
+      } else {
+        // Add new entry
+        updatedFamilyHistory.push(formData);
+      }
+
+      const updatedPatient = { ...patient, familyHistory: updatedFamilyHistory };
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+    } catch (error) {
+      console.error('Error updating family history:', error);
+    }
+  };
+
+  // Social History Handlers
+  const handleEditSocialHistory = () => {
+    setShowSocialHistoryModal(true);
+  };
+
+  const handleSaveSocialHistory = async (formData) => {
+    try {
+      const updatedPatient = { ...patient, socialHistory: formData };
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+    } catch (error) {
+      console.error('Error updating social history:', error);
+    }
+  };
+
+  // Allergy Handlers
+  const handleAddAllergy = () => {
+    setSelectedAllergy(null);
+    setShowAllergyModal(true);
+  };
+
+  const handleEditAllergy = (allergy, index) => {
+    setSelectedAllergy(allergy);
+    setDeleteEntryIndex(index);
+    setShowAllergyModal(true);
+  };
+
+  const handleDeleteAllergy = (allergy, index) => {
+    setDeleteEntryType('allergy');
+    setDeleteEntryIndex(index);
+    setSelectedAllergy(allergy);
+    setShowDeleteEntryModal(true);
+  };
+
+  const handleSaveAllergy = async (allergyData, oldAllergy) => {
+    try {
+      const updatedAllergies = [...(patient.allergies || [])];
+
+      if (oldAllergy !== null) {
+        // Edit existing entry
+        const index = updatedAllergies.findIndex(a => {
+          // Handle both string format (legacy) and object format
+          if (typeof a === 'string' && typeof oldAllergy === 'string') {
+            return a === oldAllergy;
+          } else if (typeof a === 'string') {
+            return a === oldAllergy;
+          } else if (typeof oldAllergy === 'string') {
+            return a.name === oldAllergy;
+          } else {
+            return a.name === oldAllergy.name;
+          }
+        });
+
+        if (index !== -1) {
+          updatedAllergies[index] = allergyData;
+        }
+      } else {
+        // Add new entry
+        updatedAllergies.push(allergyData);
+      }
+
+      const updatedPatient = { ...patient, allergies: updatedAllergies };
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+    } catch (error) {
+      console.error('Error updating allergies:', error);
+    }
+  };
+
+  // Delete Entry Handler
+  const handleConfirmDeleteEntry = async () => {
+    try {
+      let updatedPatient = { ...patient };
+
+      switch (deleteEntryType) {
+        case 'medical':
+          updatedPatient.medicalHistory = patient.medicalHistory.filter(entry => entry !== selectedMedicalEntry);
+          break;
+        case 'surgical':
+          updatedPatient.medicalHistory = patient.medicalHistory.filter(entry => entry !== selectedSurgicalEntry);
+          break;
+        case 'family':
+          updatedPatient.familyHistory = patient.familyHistory.filter(entry => entry !== selectedFamilyEntry);
+          break;
+        case 'allergy':
+          updatedPatient.allergies = patient.allergies.filter(allergy => allergy !== selectedAllergy);
+          break;
+        default:
+          break;
+      }
+
+      await updatePatient(patient.id, updatedPatient);
+      setPatient(updatedPatient);
+      setShowDeleteEntryModal(false);
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+    }
   };
 
   return (
@@ -275,6 +531,12 @@ export default function PatientDetail() {
                     <dt className="text-sm font-medium text-gray-500">Policy Number</dt>
                     <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{patient.policyNumber}</dd>
                   </div>
+                  {patient.additionalNotes && (
+                    <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Additional Notes</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">{patient.additionalNotes}</dd>
+                    </div>
+                  )}
                 </dl>
               </div>
             </div>
@@ -285,7 +547,12 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Medical History</h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    onClick={handleAddMedicalHistory}
+                  >
+                    Add New
+                  </button>
                 </div>
                 <div className="border-t border-gray-200">
                   <ul className="divide-y divide-gray-200">
@@ -298,11 +565,25 @@ export default function PatientDetail() {
                             <p className="text-sm font-medium text-gray-900">{condition.condition}</p>
                             <p className="text-sm text-gray-500">Diagnosed: {formatDate(condition.diagnosedDate)}</p>
                           </div>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            condition.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {condition.status}
-                          </span>
+                          <div className="flex items-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-4 ${
+                              condition.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {condition.status}
+                            </span>
+                            <button
+                              onClick={() => handleEditMedicalHistory(condition)}
+                              className="text-blue-600 hover:text-blue-800 mr-2"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMedicalHistory(condition, index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </li>
                     ))}
@@ -317,7 +598,12 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Surgical History</h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    onClick={handleAddSurgicalHistory}
+                  >
+                    Add New
+                  </button>
                 </div>
                 <div className="border-t border-gray-200">
                   <ul className="divide-y divide-gray-200">
@@ -329,6 +615,20 @@ export default function PatientDetail() {
                           <div>
                             <p className="text-sm font-medium text-gray-900">{surgery.condition}</p>
                             <p className="text-sm text-gray-500">Date: {formatDate(surgery.diagnosedDate)}</p>
+                          </div>
+                          <div className="flex items-center">
+                            <button
+                              onClick={() => handleEditSurgicalHistory(surgery)}
+                              className="text-blue-600 hover:text-blue-800 mr-2"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSurgicalHistory(surgery, index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
                           </div>
                         </div>
                       </li>
@@ -344,13 +644,43 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Allergies</h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    onClick={handleAddAllergy}
+                  >
+                    Add New
+                  </button>
                 </div>
                 <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
                   {patient.allergies && patient.allergies.length > 0 ? (
-                    <ul className="list-disc pl-5 space-y-1">
+                    <ul className="space-y-4">
                       {patient.allergies.map((allergy, index) => (
-                        <li key={index} className="text-sm text-gray-700">{allergy}</li>
+                        <li key={index} className="flex justify-between">
+                          <div>
+                            <span className="text-sm font-medium text-gray-900">
+                              {typeof allergy === 'string' ? allergy : allergy.name}
+                            </span>
+                            {typeof allergy !== 'string' && allergy.reaction && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                Reaction: {allergy.reaction}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <button
+                              onClick={() => handleEditAllergy(allergy, index)}
+                              className="text-blue-600 hover:text-blue-800 mr-2"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAllergy(allergy, index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -366,7 +696,12 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Family History</h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    onClick={handleAddFamilyHistory}
+                  >
+                    Add New
+                  </button>
                 </div>
                 <div className="border-t border-gray-200">
                   <ul className="divide-y divide-gray-200">
@@ -376,7 +711,32 @@ export default function PatientDetail() {
                           <div className="flex justify-between">
                             <div>
                               <p className="text-sm font-medium text-gray-900">{item.condition}</p>
-                              <p className="text-sm text-gray-500">Relation: {item.relation}</p>
+                              {item.relations ? (
+                                <div className="mt-1">
+                                  <p className="text-sm text-gray-500 mb-1">Family Members:</p>
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    {item.relations.map((relation, idx) => (
+                                      <li key={idx} className="text-sm text-gray-500">{relation}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500">Relation: {item.relation || 'Not specified'}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center">
+                              <button
+                                onClick={() => handleEditFamilyHistory(item)}
+                                className="text-blue-600 hover:text-blue-800 mr-2"
+                              >
+                                <PencilIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteFamilyHistory(item, index)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </button>
                             </div>
                           </div>
                         </li>
@@ -392,7 +752,12 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Social History</h2>
-                  <button className="text-sm text-blue-600 hover:text-blue-500">Add New</button>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    onClick={handleEditSocialHistory}
+                  >
+                    {patient.socialHistory ? 'Edit' : 'Add New'}
+                  </button>
                 </div>
                 <div className="border-t border-gray-200">
                   <dl>
@@ -933,6 +1298,57 @@ export default function PatientDetail() {
           </div>
         </div>
       )}
+
+      {/* Medical History Modal */}
+      <MedicalHistoryModal
+        isOpen={showMedicalHistoryModal}
+        onClose={() => setShowMedicalHistoryModal(false)}
+        onSave={handleSaveMedicalHistory}
+        entry={selectedMedicalEntry}
+        type="Medical"
+      />
+
+      {/* Surgical History Modal */}
+      <MedicalHistoryModal
+        isOpen={showSurgicalHistoryModal}
+        onClose={() => setShowSurgicalHistoryModal(false)}
+        onSave={handleSaveSurgicalHistory}
+        entry={selectedSurgicalEntry}
+        type="Surgical"
+      />
+
+      {/* Family History Modal */}
+      <FamilyHistoryModal
+        isOpen={showFamilyHistoryModal}
+        onClose={() => setShowFamilyHistoryModal(false)}
+        onSave={handleSaveFamilyHistory}
+        entry={selectedFamilyEntry}
+      />
+
+      {/* Social History Modal */}
+      <SocialHistoryModal
+        isOpen={showSocialHistoryModal}
+        onClose={() => setShowSocialHistoryModal(false)}
+        onSave={handleSaveSocialHistory}
+        socialHistory={patient?.socialHistory}
+      />
+
+      {/* Allergy Modal */}
+      <AllergyModal
+        isOpen={showAllergyModal}
+        onClose={() => setShowAllergyModal(false)}
+        onSave={handleSaveAllergy}
+        allergy={selectedAllergy}
+      />
+
+      {/* Delete Entry Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteEntryModal}
+        onClose={() => setShowDeleteEntryModal(false)}
+        onConfirm={handleConfirmDeleteEntry}
+        title={`Delete ${deleteEntryType.charAt(0).toUpperCase() + deleteEntryType.slice(1)} History Entry`}
+        message="Are you sure you want to delete this entry? This action cannot be undone."
+      />
     </div>
   );
 }

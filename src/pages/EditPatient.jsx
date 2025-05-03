@@ -20,7 +20,8 @@ export default function EditPatient() {
     emergencyContact: '',
     emergencyPhone: '',
     allergies: '',
-    primaryCareProvider: ''
+    primaryCareProvider: '',
+    additionalNotes: ''
   });
 
   useEffect(() => {
@@ -28,12 +29,22 @@ export default function EditPatient() {
       try {
         setLoading(true);
         const patientData = await getPatient(id);
-        
+
         // Format allergies as a string for the form
-        const allergiesString = Array.isArray(patientData.allergies) 
-          ? patientData.allergies.join(', ') 
-          : patientData.allergies || '';
-        
+        let allergiesString = '';
+        if (Array.isArray(patientData.allergies)) {
+          allergiesString = patientData.allergies.map(allergy => {
+            // Handle both string format (legacy) and object format
+            if (typeof allergy === 'string') {
+              return allergy;
+            } else {
+              return allergy.name;
+            }
+          }).join(', ');
+        } else if (patientData.allergies) {
+          allergiesString = patientData.allergies;
+        }
+
         setPatient({
           ...patientData,
           allergies: allergiesString
@@ -60,10 +71,15 @@ export default function EditPatient() {
     e.preventDefault();
 
     try {
-      // Format allergies as an array
+      // Format allergies as an array of objects with name and reaction properties
       const formattedPatient = {
         ...patient,
-        allergies: patient.allergies ? patient.allergies.split(',').map(allergy => allergy.trim()) : []
+        allergies: patient.allergies
+          ? patient.allergies.split(',').map(allergy => ({
+              name: allergy.trim(),
+              reaction: ''  // Default empty reaction for allergies added via the simple form
+            }))
+          : []
       };
 
       // Update the patient
@@ -283,6 +299,20 @@ export default function EditPatient() {
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 value={patient.primaryCareProvider}
                 onChange={handleChange}
+              />
+            </div>
+
+            {/* Additional Notes */}
+            <div className="md:col-span-2">
+              <label htmlFor="additionalNotes" className="block text-sm font-medium text-gray-700">Additional Notes</label>
+              <textarea
+                id="additionalNotes"
+                name="additionalNotes"
+                rows="4"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                value={patient.additionalNotes || ''}
+                onChange={handleChange}
+                placeholder="Enter any additional information about the patient here..."
               />
             </div>
           </div>
