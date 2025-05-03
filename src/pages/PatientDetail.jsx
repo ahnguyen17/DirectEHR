@@ -29,7 +29,6 @@ export default function PatientDetail() {
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Modal states for history entries
   const [showMedicalHistoryModal, setShowMedicalHistoryModal] = useState(false);
@@ -47,10 +46,15 @@ export default function PatientDetail() {
   const [deleteEntryType, setDeleteEntryType] = useState('');
   const [deleteEntryIndex, setDeleteEntryIndex] = useState(null);
 
-  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, deletePatient, updatePatient } = usePatient();
+  // State for labs and diagnostics
+  const [labResults, setLabResults] = useState([]);
+  const [diagnostics, setDiagnostics] = useState([]);
+
+  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, updatePatient } = usePatient();
   const { getPatientLabResults } = useLabs();
   const { getPatientDiagnostics } = useDiagnostics();
 
+  // Fetch patient data
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
@@ -96,6 +100,40 @@ export default function PatientDetail() {
     fetchPatientData();
   }, [id, getPatient, getPatientNotes, getPatientOrders, getPatientVitals]);
 
+  // Fetch lab results when patient changes or tab is set to labs
+  useEffect(() => {
+    const fetchLabResults = async () => {
+      if (patient && (activeTab === 'labs' || activeTab === 'overview')) {
+        try {
+          const results = await getPatientLabResults(patient.id);
+          setLabResults(results || []);
+        } catch (error) {
+          console.error('Error fetching lab results:', error);
+          setLabResults([]);
+        }
+      }
+    };
+
+    fetchLabResults();
+  }, [patient, activeTab, getPatientLabResults]);
+
+  // Fetch diagnostics when patient changes or tab is set to diagnostics
+  useEffect(() => {
+    const fetchDiagnostics = async () => {
+      if (patient && activeTab === 'diagnostics') {
+        try {
+          const results = await getPatientDiagnostics(patient.id);
+          setDiagnostics(results || []);
+        } catch (error) {
+          console.error('Error fetching diagnostics:', error);
+          setDiagnostics([]);
+        }
+      }
+    };
+
+    fetchDiagnostics();
+  }, [patient, activeTab, getPatientDiagnostics]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -136,25 +174,7 @@ export default function PatientDetail() {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteModal(true);
-  };
 
-  const handleConfirmDelete = async () => {
-    try {
-      await deletePatient(id);
-      setShowDeleteModal(false);
-      navigate('/patients');
-    } catch (error) {
-      console.error('Error deleting patient:', error);
-      // You could add error handling UI here
-      setShowDeleteModal(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-  };
 
   // Medical History Handlers
   const handleAddMedicalHistory = () => {
@@ -411,13 +431,6 @@ export default function PatientDetail() {
               <PencilIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
               Edit
             </Link>
-            <button
-              onClick={handleDeleteClick}
-              className="btn btn-danger inline-flex items-center"
-            >
-              <TrashIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
-              Delete
-            </button>
           </div>
         </div>
       </div>
@@ -1092,28 +1105,9 @@ export default function PatientDetail() {
             </Link>
           </div>
 
-          {(() => {
-            // Use an empty array as a fallback if the function call fails
-            const [labResults, setLabResults] = useState([]);
-
-            useEffect(() => {
-              const fetchLabResults = async () => {
-                try {
-                  const results = await getPatientLabResults(patient.id);
-                  setLabResults(results || []);
-                } catch (error) {
-                  console.error('Error fetching lab results:', error);
-                  setLabResults([]);
-                }
-              };
-
-              fetchLabResults();
-            }, [patient.id]);
-
-            return (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                {labResults && labResults.length > 0 ? (
-                  <div>
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            {labResults && labResults.length > 0 ? (
+              <div>
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
@@ -1228,8 +1222,6 @@ export default function PatientDetail() {
                   </div>
                 )}
               </div>
-            );
-          })()}
         </div>
       )}
 
@@ -1256,27 +1248,8 @@ export default function PatientDetail() {
             </Link>
           </div>
 
-          {(() => {
-            // Use an empty array as a fallback if the function call fails
-            const [diagnostics, setDiagnostics] = useState([]);
-
-            useEffect(() => {
-              const fetchDiagnostics = async () => {
-                try {
-                  const results = await getPatientDiagnostics(patient.id);
-                  setDiagnostics(results || []);
-                } catch (error) {
-                  console.error('Error fetching diagnostics:', error);
-                  setDiagnostics([]);
-                }
-              };
-
-              fetchDiagnostics();
-            }, [patient.id]);
-
-            return (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                {diagnostics && diagnostics.length > 0 ? (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            {diagnostics && diagnostics.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -1337,42 +1310,10 @@ export default function PatientDetail() {
                   </div>
                 )}
               </div>
-            );
-          })()}
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <div className="flex items-center justify-center text-red-600 mb-4">
-              <ExclamationTriangleIcon className="h-12 w-12" aria-hidden="true" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 text-center mb-2">Delete Patient</h3>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              Are you sure you want to delete {patient.name}? This action cannot be undone.
-              All associated data (notes, orders, vitals, etc.) will also be deleted.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleCancelDelete}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={handleConfirmDelete}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Medical History Modal */}
       <MedicalHistoryModal

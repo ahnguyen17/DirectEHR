@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { usePatient } from '../context/PatientContext';
+import { TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 export default function EditPatient() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getPatient, updatePatient } = usePatient();
+  const { getPatient, updatePatient, deletePatient } = usePatient();
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [patient, setPatient] = useState({
     name: '',
     dob: '',
@@ -91,6 +94,25 @@ export default function EditPatient() {
       console.error('Error updating patient:', error);
       // You could add error handling UI here
     }
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deletePatient(id);
+      setShowDeleteModal(false);
+      navigate('/patients');
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
   };
 
   if (loading) {
@@ -319,17 +341,36 @@ export default function EditPatient() {
         </div>
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-between">
           <button
             type="button"
-            className="btn btn-secondary"
-            onClick={() => navigate(`/patients/${id}`)}
+            className="btn btn-danger inline-flex items-center"
+            onClick={handleDeleteClick}
           >
-            Cancel
+            <TrashIcon className="-ml-1 mr-1 h-4 w-4" aria-hidden="true" />
+            Delete
           </button>
-          <button type="submit" className="btn btn-primary">Save Changes</button>
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => navigate(`/patients/${id}`)}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">Save Changes</button>
+          </div>
         </div>
       </form>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Patient"
+        message={`Are you sure you want to delete ${patient.name}? This action cannot be undone. All associated data (notes, orders, vitals, etc.) will also be deleted.`}
+      />
     </div>
   );
 }
