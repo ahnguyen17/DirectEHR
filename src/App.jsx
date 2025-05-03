@@ -10,6 +10,8 @@ import NotesPage from './pages/NotesPage';
 import AddNote from './pages/AddNote';
 import OrdersPage from './pages/OrdersPage';
 import AddOrder from './pages/AddOrder';
+import OrderDetail from './pages/OrderDetail';
+import EditOrder from './pages/EditOrder';
 import VitalsPage from './pages/VitalsPage';
 import RecordVitals from './pages/RecordVitals';
 
@@ -45,6 +47,8 @@ function App() {
           <Route path="orders">
             <Route index element={<OrdersPage />} />
             <Route path="new" element={<AddOrder />} />
+            <Route path=":id" element={<OrderDetail />} />
+            <Route path=":id/edit" element={<EditOrder />} />
           </Route>
 
           <Route path="vitals">

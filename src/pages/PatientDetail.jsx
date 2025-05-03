@@ -983,37 +983,69 @@ export default function PatientDetail() {
                     Status
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Due Date
+                    Due/Completed Date
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Priority
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Details
                   </th>
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {patient.orders && patient.orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatDate(order.date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {order.type}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.dueDate ? formatDate(order.dueDate) : (order.completedDate ? formatDate(order.completedDate) : 'N/A')}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {order.details || order.results || 'N/A'}
+                {patient.orders && patient.orders.length > 0 ? (
+                  patient.orders.map((order) => (
+                    <tr key={order.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatDate(order.date)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {order.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          order.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                          order.status === 'Scheduled' ? 'bg-purple-100 text-purple-800' :
+                          order.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                          order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.completedDate ? formatDate(order.completedDate) : (order.dueDate ? formatDate(order.dueDate) : 'N/A')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.priority || 'Routine'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        {order.details || order.results || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link to={`/orders/${order.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
+                          View
+                        </Link>
+                        {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+                          <Link to={`/orders/${order.id}/edit`} className="text-indigo-600 hover:text-indigo-900">
+                            Edit
+                          </Link>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                      No orders found for this patient.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
