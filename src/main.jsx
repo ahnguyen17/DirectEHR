@@ -5,13 +5,16 @@ import './index.css'
 import { PatientProvider } from './context/PatientContext.jsx'
 import { LabsProvider } from './context/LabsContext.jsx'
 import { DiagnosticsProvider } from './context/DiagnosticsContext.jsx'
+import { ProblemListProvider } from './context/ProblemListContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <PatientProvider>
       <LabsProvider>
         <DiagnosticsProvider>
-          <App />
+          <ProblemListProvider>
+            <App />
+          </ProblemListProvider>
         </DiagnosticsProvider>
       </LabsProvider>
     </PatientProvider>

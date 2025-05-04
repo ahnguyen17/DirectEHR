@@ -21,6 +21,8 @@ const AddLabOrder = React.lazy(() => import('./pages/AddLabOrder'));
 const LabResultEntry = React.lazy(() => import('./pages/LabResultEntry'));
 const DiagnosticsPage = React.lazy(() => import('./pages/DiagnosticsPage'));
 const AddDiagnostic = React.lazy(() => import('./pages/AddDiagnostic'));
+const ProblemListPage = React.lazy(() => import('./pages/ProblemListPage'));
+const AddProblem = React.lazy(() => import('./pages/AddProblem'));
 
 function App() {
   return (
@@ -83,6 +85,19 @@ function App() {
             <Route path="new" element={
               <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
                 <AddDiagnostic />
+              </Suspense>
+            } />
+          </Route>
+
+          <Route path="problems">
+            <Route index element={
+              <Suspense fallback={<div className="text-center p-6">Loading Problem List...</div>}>
+                <ProblemListPage />
+              </Suspense>
+            } />
+            <Route path="new" element={
+              <Suspense fallback={<div className="text-center p-6">Loading...</div>}>
+                <AddProblem />
               </Suspense>
             } />
           </Route>

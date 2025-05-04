@@ -9,7 +9,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   BeakerIcon,
-  ClipboardDocumentCheckIcon
+  FilmIcon
 } from '@heroicons/react/24/outline';
 
 const navItems = [
@@ -19,7 +19,7 @@ const navItems = [
   { name: 'Notes', icon: DocumentTextIcon, to: '/notes' },
   { name: 'Orders', icon: ClipboardDocumentListIcon, to: '/orders' },
   { name: 'Labs', icon: BeakerIcon, to: '/labs' },
-  { name: 'Diagnostics', icon: ClipboardDocumentCheckIcon, to: '/diagnostics' },
+  { name: 'Diagnostics', icon: FilmIcon, to: '/diagnostics' },
 ];
 
 export default function Sidebar() {

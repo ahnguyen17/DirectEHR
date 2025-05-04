@@ -27,6 +27,7 @@ const VITALS_FILE = path.join(DATA_DIR, 'vitals.json');
 const LAB_TESTS_FILE = path.join(DATA_DIR, 'lab_tests.json');
 const LAB_RESULTS_FILE = path.join(DATA_DIR, 'lab_results.json');
 const DIAGNOSTICS_FILE = path.join(DATA_DIR, 'diagnostics.json');
+const PROBLEMS_FILE = path.join(DATA_DIR, 'problems.json');
 
 // Ensure data directory exists
 async function ensureDataDir() {
@@ -53,10 +54,10 @@ async function initializeDataFile(filePath, defaultData) {
 // Initialize all data files
 async function initializeData() {
   await ensureDataDir();
-  
+
   // Default data (empty arrays for now, will be populated on first request if empty)
   const defaultData = [];
-  
+
   await initializeDataFile(PATIENTS_FILE, defaultData);
   await initializeDataFile(NOTES_FILE, defaultData);
   await initializeDataFile(ORDERS_FILE, defaultData);
@@ -64,6 +65,7 @@ async function initializeData() {
   await initializeDataFile(LAB_TESTS_FILE, defaultData);
   await initializeDataFile(LAB_RESULTS_FILE, defaultData);
   await initializeDataFile(DIAGNOSTICS_FILE, defaultData);
+  await initializeDataFile(PROBLEMS_FILE, defaultData);
 }
 
 // Helper function to read data from a file
@@ -104,11 +106,11 @@ app.get('/api/patients', async (req, res) => {
 app.get('/api/patients/:id', async (req, res) => {
   const patients = await readData(PATIENTS_FILE);
   const patient = patients.find(p => p.id === parseInt(req.params.id));
-  
+
   if (!patient) {
     return res.status(404).json({ message: 'Patient not found' });
   }
-  
+
   res.json(patient);
 });
 
@@ -118,41 +120,41 @@ app.post('/api/patients', async (req, res) => {
     id: generateId(patients),
     ...req.body
   };
-  
+
   patients.push(newPatient);
   await writeData(PATIENTS_FILE, patients);
-  
+
   res.status(201).json(newPatient);
 });
 
 app.put('/api/patients/:id', async (req, res) => {
   const patients = await readData(PATIENTS_FILE);
   const index = patients.findIndex(p => p.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Patient not found' });
   }
-  
+
   const updatedPatient = {
     ...patients[index],
     ...req.body,
     id: parseInt(req.params.id) // Ensure ID doesn't change
   };
-  
+
   patients[index] = updatedPatient;
   await writeData(PATIENTS_FILE, patients);
-  
+
   res.json(updatedPatient);
 });
 
 app.delete('/api/patients/:id', async (req, res) => {
   const patients = await readData(PATIENTS_FILE);
   const filteredPatients = patients.filter(p => p.id !== parseInt(req.params.id));
-  
+
   if (filteredPatients.length === patients.length) {
     return res.status(404).json({ message: 'Patient not found' });
   }
-  
+
   await writeData(PATIENTS_FILE, filteredPatients);
   res.json({ message: 'Patient deleted successfully' });
 });
@@ -175,41 +177,41 @@ app.post('/api/notes', async (req, res) => {
     id: generateId(notes),
     ...req.body
   };
-  
+
   notes.push(newNote);
   await writeData(NOTES_FILE, notes);
-  
+
   res.status(201).json(newNote);
 });
 
 app.put('/api/notes/:id', async (req, res) => {
   const notes = await readData(NOTES_FILE);
   const index = notes.findIndex(n => n.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Note not found' });
   }
-  
+
   const updatedNote = {
     ...notes[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   notes[index] = updatedNote;
   await writeData(NOTES_FILE, notes);
-  
+
   res.json(updatedNote);
 });
 
 app.delete('/api/notes/:id', async (req, res) => {
   const notes = await readData(NOTES_FILE);
   const filteredNotes = notes.filter(n => n.id !== parseInt(req.params.id));
-  
+
   if (filteredNotes.length === notes.length) {
     return res.status(404).json({ message: 'Note not found' });
   }
-  
+
   await writeData(NOTES_FILE, filteredNotes);
   res.json({ message: 'Note deleted successfully' });
 });
@@ -232,41 +234,41 @@ app.post('/api/orders', async (req, res) => {
     id: generateId(orders),
     ...req.body
   };
-  
+
   orders.push(newOrder);
   await writeData(ORDERS_FILE, orders);
-  
+
   res.status(201).json(newOrder);
 });
 
 app.put('/api/orders/:id', async (req, res) => {
   const orders = await readData(ORDERS_FILE);
   const index = orders.findIndex(o => o.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Order not found' });
   }
-  
+
   const updatedOrder = {
     ...orders[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   orders[index] = updatedOrder;
   await writeData(ORDERS_FILE, orders);
-  
+
   res.json(updatedOrder);
 });
 
 app.delete('/api/orders/:id', async (req, res) => {
   const orders = await readData(ORDERS_FILE);
   const filteredOrders = orders.filter(o => o.id !== parseInt(req.params.id));
-  
+
   if (filteredOrders.length === orders.length) {
     return res.status(404).json({ message: 'Order not found' });
   }
-  
+
   await writeData(ORDERS_FILE, filteredOrders);
   res.json({ message: 'Order deleted successfully' });
 });
@@ -289,41 +291,41 @@ app.post('/api/vitals', async (req, res) => {
     id: generateId(vitals),
     ...req.body
   };
-  
+
   vitals.push(newVitals);
   await writeData(VITALS_FILE, vitals);
-  
+
   res.status(201).json(newVitals);
 });
 
 app.put('/api/vitals/:id', async (req, res) => {
   const vitals = await readData(VITALS_FILE);
   const index = vitals.findIndex(v => v.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Vitals record not found' });
   }
-  
+
   const updatedVitals = {
     ...vitals[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   vitals[index] = updatedVitals;
   await writeData(VITALS_FILE, vitals);
-  
+
   res.json(updatedVitals);
 });
 
 app.delete('/api/vitals/:id', async (req, res) => {
   const vitals = await readData(VITALS_FILE);
   const filteredVitals = vitals.filter(v => v.id !== parseInt(req.params.id));
-  
+
   if (filteredVitals.length === vitals.length) {
     return res.status(404).json({ message: 'Vitals record not found' });
   }
-  
+
   await writeData(VITALS_FILE, filteredVitals);
   res.json({ message: 'Vitals record deleted successfully' });
 });
@@ -340,30 +342,30 @@ app.post('/api/lab-tests', async (req, res) => {
     id: generateId(labTests),
     ...req.body
   };
-  
+
   labTests.push(newLabTest);
   await writeData(LAB_TESTS_FILE, labTests);
-  
+
   res.status(201).json(newLabTest);
 });
 
 app.put('/api/lab-tests/:id', async (req, res) => {
   const labTests = await readData(LAB_TESTS_FILE);
   const index = labTests.findIndex(lt => lt.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Lab test not found' });
   }
-  
+
   const updatedLabTest = {
     ...labTests[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   labTests[index] = updatedLabTest;
   await writeData(LAB_TESTS_FILE, labTests);
-  
+
   res.json(updatedLabTest);
 });
 
@@ -385,30 +387,30 @@ app.post('/api/lab-results', async (req, res) => {
     id: generateId(labResults),
     ...req.body
   };
-  
+
   labResults.push(newLabResult);
   await writeData(LAB_RESULTS_FILE, labResults);
-  
+
   res.status(201).json(newLabResult);
 });
 
 app.put('/api/lab-results/:id', async (req, res) => {
   const labResults = await readData(LAB_RESULTS_FILE);
   const index = labResults.findIndex(lr => lr.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Lab result not found' });
   }
-  
+
   const updatedLabResult = {
     ...labResults[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   labResults[index] = updatedLabResult;
   await writeData(LAB_RESULTS_FILE, labResults);
-  
+
   res.json(updatedLabResult);
 });
 
@@ -430,43 +432,100 @@ app.post('/api/diagnostics', async (req, res) => {
     id: generateId(diagnostics),
     ...req.body
   };
-  
+
   diagnostics.push(newDiagnostic);
   await writeData(DIAGNOSTICS_FILE, diagnostics);
-  
+
   res.status(201).json(newDiagnostic);
 });
 
 app.put('/api/diagnostics/:id', async (req, res) => {
   const diagnostics = await readData(DIAGNOSTICS_FILE);
   const index = diagnostics.findIndex(d => d.id === parseInt(req.params.id));
-  
+
   if (index === -1) {
     return res.status(404).json({ message: 'Diagnostic not found' });
   }
-  
+
   const updatedDiagnostic = {
     ...diagnostics[index],
     ...req.body,
     id: parseInt(req.params.id)
   };
-  
+
   diagnostics[index] = updatedDiagnostic;
   await writeData(DIAGNOSTICS_FILE, diagnostics);
-  
+
   res.json(updatedDiagnostic);
 });
 
 app.delete('/api/diagnostics/:id', async (req, res) => {
   const diagnostics = await readData(DIAGNOSTICS_FILE);
   const filteredDiagnostics = diagnostics.filter(d => d.id !== parseInt(req.params.id));
-  
+
   if (filteredDiagnostics.length === diagnostics.length) {
     return res.status(404).json({ message: 'Diagnostic not found' });
   }
-  
+
   await writeData(DIAGNOSTICS_FILE, filteredDiagnostics);
   res.json({ message: 'Diagnostic deleted successfully' });
+});
+
+// Problem List
+app.get('/api/problems', async (req, res) => {
+  const problems = await readData(PROBLEMS_FILE);
+  res.json(problems);
+});
+
+app.get('/api/patients/:patientId/problems', async (req, res) => {
+  const problems = await readData(PROBLEMS_FILE);
+  const patientProblems = problems.filter(problem => problem.patientId === parseInt(req.params.patientId));
+  res.json(patientProblems);
+});
+
+app.post('/api/problems', async (req, res) => {
+  const problems = await readData(PROBLEMS_FILE);
+  const newProblem = {
+    id: generateId(problems),
+    ...req.body
+  };
+
+  problems.push(newProblem);
+  await writeData(PROBLEMS_FILE, problems);
+
+  res.status(201).json(newProblem);
+});
+
+app.put('/api/problems/:id', async (req, res) => {
+  const problems = await readData(PROBLEMS_FILE);
+  const index = problems.findIndex(p => p.id === parseInt(req.params.id));
+
+  if (index === -1) {
+    return res.status(404).json({ message: 'Problem not found' });
+  }
+
+  const updatedProblem = {
+    ...problems[index],
+    ...req.body,
+    id: parseInt(req.params.id)
+  };
+
+  problems[index] = updatedProblem;
+  await writeData(PROBLEMS_FILE, problems);
+
+  res.json(updatedProblem);
+});
+
+app.delete('/api/problems/:id', async (req, res) => {
+  const problems = await readData(PROBLEMS_FILE);
+  const filteredProblems = problems.filter(p => p.id !== parseInt(req.params.id));
+
+  if (filteredProblems.length === problems.length) {
+    return res.status(404).json({ message: 'Problem not found' });
+  }
+
+  await writeData(PROBLEMS_FILE, filteredProblems);
+  res.json({ message: 'Problem deleted successfully' });
 });
 
 // Initialize data and start server

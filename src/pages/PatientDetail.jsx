@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import ProblemModal from '../components/ProblemModal';
 import {
   UserCircleIcon,
   ChartBarIcon,
@@ -10,11 +11,14 @@ import {
   BeakerIcon,
   ClipboardDocumentCheckIcon,
   TrashIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import { usePatient } from '../context/PatientContext';
 import { useLabs } from '../context/LabsContext';
 import { useDiagnostics } from '../context/DiagnosticsContext';
+import { useProblemList } from '../context/ProblemListContext';
 import VitalsTrends from '../components/VitalsTrends';
 import MedicalHistoryModal from '../components/MedicalHistoryModal';
 import FamilyHistoryModal from '../components/FamilyHistoryModal';
@@ -26,9 +30,14 @@ import MedicationManagement from '../components/MedicationManagement';
 export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+
+  // Get tab from URL query parameter if it exists
+  const queryParams = new URLSearchParams(location.search);
+  const tabParam = queryParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'overview');
 
   // Modal states for history entries
   const [showMedicalHistoryModal, setShowMedicalHistoryModal] = useState(false);
@@ -37,22 +46,28 @@ export default function PatientDetail() {
   const [showSocialHistoryModal, setShowSocialHistoryModal] = useState(false);
   const [showAllergyModal, setShowAllergyModal] = useState(false);
   const [showDeleteEntryModal, setShowDeleteEntryModal] = useState(false);
+  const [showDeleteProblemModal, setShowDeleteProblemModal] = useState(false);
+  const [showProblemModal, setShowProblemModal] = useState(false);
 
   // Selected entry for editing or deleting
   const [selectedMedicalEntry, setSelectedMedicalEntry] = useState(null);
   const [selectedSurgicalEntry, setSelectedSurgicalEntry] = useState(null);
   const [selectedFamilyEntry, setSelectedFamilyEntry] = useState(null);
   const [selectedAllergy, setSelectedAllergy] = useState(null);
+  const [selectedProblemId, setSelectedProblemId] = useState(null);
+  const [selectedProblem, setSelectedProblem] = useState(null);
   const [deleteEntryType, setDeleteEntryType] = useState('');
   const [deleteEntryIndex, setDeleteEntryIndex] = useState(null);
 
-  // State for labs and diagnostics
+  // State for labs, diagnostics, and problems
   const [labResults, setLabResults] = useState([]);
   const [diagnostics, setDiagnostics] = useState([]);
+  const [problems, setProblems] = useState([]);
 
   const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, updatePatient } = usePatient();
   const { getPatientLabResults } = useLabs();
   const { getPatientDiagnostics } = useDiagnostics();
+  const { getPatientProblems, updateProblem, deleteProblem, addProblem } = useProblemList();
 
   // Fetch patient data
   useEffect(() => {
@@ -133,6 +148,32 @@ export default function PatientDetail() {
 
     fetchDiagnostics();
   }, [patient, activeTab, getPatientDiagnostics]);
+
+  // Fetch problems when patient changes (needed for both problems tab and medical history)
+  useEffect(() => {
+    const fetchProblems = async () => {
+      if (patient) {
+        try {
+          const results = await getPatientProblems(patient.id);
+          setProblems(results || []);
+        } catch (error) {
+          console.error('Error fetching problems:', error);
+          setProblems([]);
+        }
+      }
+    };
+
+    fetchProblems();
+  }, [patient, getPatientProblems]);
+
+  // Update active tab when URL query parameters change
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   if (loading) {
     return (
@@ -380,6 +421,65 @@ export default function PatientDetail() {
     }
   };
 
+  // Problem List Handlers
+  const handleProblemStatusChange = async (problem, newStatus) => {
+    try {
+      await updateProblem(problem.id, { ...problem, status: newStatus });
+      // Refresh problems list
+      const updatedProblems = await getPatientProblems(patient.id);
+      setProblems(updatedProblems || []);
+      alert(`Problem status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating problem status:', error);
+      alert('Failed to update problem status');
+    }
+  };
+
+  const handleEditProblem = (problem) => {
+    setSelectedProblem(problem);
+    setShowProblemModal(true);
+  };
+
+  const handleSaveProblem = async (formData, problemId) => {
+    try {
+      if (problemId) {
+        // Update existing problem
+        await updateProblem(problemId, formData);
+        // Refresh problems list
+        const updatedProblems = await getPatientProblems(patient.id);
+        setProblems(updatedProblems || []);
+      } else {
+        // Add new problem
+        await addProblem(formData);
+        // Refresh problems list
+        const updatedProblems = await getPatientProblems(patient.id);
+        setProblems(updatedProblems || []);
+      }
+    } catch (error) {
+      console.error('Error saving problem:', error);
+      alert('Failed to save problem');
+    }
+  };
+
+  const handleDeleteProblem = (id) => {
+    setSelectedProblemId(id);
+    setShowDeleteProblemModal(true);
+  };
+
+  const handleConfirmDeleteProblem = async () => {
+    try {
+      await deleteProblem(selectedProblemId);
+      // Refresh problems list
+      const updatedProblems = await getPatientProblems(patient.id);
+      setProblems(updatedProblems || []);
+      setShowDeleteProblemModal(false);
+    } catch (error) {
+      console.error('Error deleting problem:', error);
+      alert('Failed to delete problem');
+      setShowDeleteProblemModal(false);
+    }
+  };
+
   // Delete Entry Handler
   const handleConfirmDeleteEntry = async () => {
     try {
@@ -469,6 +569,17 @@ export default function PatientDetail() {
           >
             <DocumentTextIcon className="h-4 w-4 mr-1" />
             Notes
+          </button>
+          <button
+            className={`${
+              activeTab === 'problems'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+            onClick={() => setActiveTab('problems')}
+          >
+            <ClipboardDocumentCheckIcon className="h-4 w-4 mr-1" />
+            Problem List
           </button>
           <button
             className={`${
@@ -572,19 +683,28 @@ export default function PatientDetail() {
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                   <h2 className="text-lg font-medium text-gray-900">Medical History</h2>
-                  <button
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                    onClick={handleAddMedicalHistory}
-                  >
-                    Add New
-                  </button>
+                  <div className="flex space-x-4">
+                    <button
+                      className="text-sm text-blue-600 hover:text-blue-500"
+                      onClick={handleAddMedicalHistory}
+                    >
+                      Add Manual Entry
+                    </button>
+                    <Link
+                      to={`/problems/new?patientId=${patient.id}`}
+                      className="text-sm text-blue-600 hover:text-blue-500"
+                    >
+                      Add Problem
+                    </Link>
+                  </div>
                 </div>
                 <div className="border-t border-gray-200">
                   <ul className="divide-y divide-gray-200">
+                    {/* Manual Medical History Entries */}
                     {patient.medicalHistory && patient.medicalHistory
                       .filter(condition => condition.type !== 'Surgical')
                       .map((condition, index) => (
-                      <li key={index} className="px-4 py-4">
+                      <li key={`med-${index}`} className="px-4 py-4">
                         <div className="flex justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{condition.condition}</p>
@@ -612,7 +732,54 @@ export default function PatientDetail() {
                         </div>
                       </li>
                     ))}
-                    {!patient.medicalHistory || patient.medicalHistory.filter(condition => condition.type !== 'Surgical').length === 0 && (
+
+                    {/* Problem List Items */}
+                    {problems && problems.map((problem) => (
+                      <li key={`prob-${problem.id}`} className="px-4 py-4">
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{problem.description}</p>
+                            <p className="text-sm text-gray-500">
+                              <span className="font-medium">ICD-10:</span> {problem.code} | <span className="font-medium">Date:</span> {formatDate(problem.date)}
+                            </p>
+                            {problem.notes && (
+                              <p className="text-sm text-gray-500 mt-1 italic">{problem.notes}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-4 ${
+                              problem.status === 'Active' ? 'bg-green-100 text-green-800' :
+                              problem.status === 'Resolved' ? 'bg-blue-100 text-blue-800' :
+                              problem.status === 'Inactive' ? 'bg-gray-100 text-gray-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {problem.status}
+                            </span>
+
+                            {/* Edit button */}
+                            <button
+                              onClick={() => handleEditProblem(problem)}
+                              className="text-indigo-600 hover:text-indigo-900 mr-2"
+                              title="Edit Problem"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+
+                            {/* Delete button */}
+                            <button
+                              onClick={() => handleDeleteProblem(problem.id)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Delete Problem"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+
+                    {(!patient.medicalHistory || patient.medicalHistory.filter(condition => condition.type !== 'Surgical').length === 0) &&
+                     (!problems || problems.length === 0) && (
                       <li className="px-4 py-4 text-sm text-gray-500">No medical history recorded</li>
                     )}
                   </ul>
@@ -1334,12 +1501,87 @@ export default function PatientDetail() {
             <h2 className="text-lg font-medium text-gray-900">Diagnostics</h2>
             <Link to={`/diagnostics/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
-              Add Diagnostic
+              Order New Study
             </Link>
           </div>
 
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             {diagnostics && diagnostics.length > 0 ? (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Type
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Study
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Provider
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Result
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {diagnostics.map((diagnostic) => (
+                        <tr key={diagnostic.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {formatDate(diagnostic.date)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {diagnostic.type}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                            {diagnostic.study}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              diagnostic.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                              diagnostic.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {diagnostic.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {diagnostic.provider}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                            {diagnostic.result}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="p-6 text-center">
+                    <p className="text-gray-500">No diagnostic studies found for this patient.</p>
+                  </div>
+                )}
+              </div>
+        </div>
+      )}
+
+      {activeTab === 'problems' && (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-medium text-gray-900">Problem List</h2>
+            <Link to={`/problems/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center">
+              <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
+              Add Problem
+            </Link>
+          </div>
+
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            {problems && problems.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -1356,39 +1598,89 @@ export default function PatientDetail() {
                           Status
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Provider
+                          Notes
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Notes
+                          Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {diagnostics.map((diagnostic) => (
-                        <tr key={diagnostic.id}>
+                      {problems.map((problem) => (
+                        <tr key={problem.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatDate(diagnostic.date)}
+                            {formatDate(problem.date)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {diagnostic.code}
+                            {problem.code}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                            {diagnostic.description}
+                            {problem.description}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              diagnostic.status === 'Active' ? 'bg-green-100 text-green-800' :
-                              diagnostic.status === 'Resolved' ? 'bg-blue-100 text-blue-800' :
+                              problem.status === 'Active' ? 'bg-green-100 text-green-800' :
+                              problem.status === 'Resolved' ? 'bg-blue-100 text-blue-800' :
+                              problem.status === 'Inactive' ? 'bg-gray-100 text-gray-800' :
                               'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {diagnostic.status}
+                              {problem.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {diagnostic.provider}
-                          </td>
                           <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                            {diagnostic.notes}
+                            {problem.notes}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex space-x-3">
+                              {/* Status change buttons */}
+                              <div className="flex space-x-1">
+                                {problem.status !== 'Active' && (
+                                  <button
+                                    onClick={() => handleProblemStatusChange(problem, 'Active')}
+                                    className="text-green-600 hover:text-green-900"
+                                    title="Mark as Active"
+                                  >
+                                    <CheckCircleIcon className="h-5 w-5" />
+                                  </button>
+                                )}
+                                {problem.status !== 'Resolved' && (
+                                  <button
+                                    onClick={() => handleProblemStatusChange(problem, 'Resolved')}
+                                    className="text-blue-600 hover:text-blue-900"
+                                    title="Mark as Resolved"
+                                  >
+                                    <CheckCircleIcon className="h-5 w-5" />
+                                  </button>
+                                )}
+                                {problem.status !== 'Inactive' && (
+                                  <button
+                                    onClick={() => handleProblemStatusChange(problem, 'Inactive')}
+                                    className="text-gray-600 hover:text-gray-900"
+                                    title="Mark as Inactive"
+                                  >
+                                    <XCircleIcon className="h-5 w-5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Edit button */}
+                              <button
+                                onClick={() => handleEditProblem(problem)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                                title="Edit Problem"
+                              >
+                                <PencilIcon className="h-5 w-5" />
+                              </button>
+
+                              {/* Delete button */}
+                              <button
+                                onClick={() => handleDeleteProblem(problem.id)}
+                                className="text-red-600 hover:text-red-900"
+                                title="Delete Problem"
+                              >
+                                <TrashIcon className="h-5 w-5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1396,7 +1688,7 @@ export default function PatientDetail() {
                   </table>
                 ) : (
                   <div className="p-6 text-center">
-                    <p className="text-gray-500">No diagnostics found for this patient.</p>
+                    <p className="text-gray-500">No problems found for this patient.</p>
                   </div>
                 )}
               </div>
@@ -1454,6 +1746,24 @@ export default function PatientDetail() {
         onConfirm={handleConfirmDeleteEntry}
         title={`Delete ${deleteEntryType.charAt(0).toUpperCase() + deleteEntryType.slice(1)} History Entry`}
         message="Are you sure you want to delete this entry? This action cannot be undone."
+      />
+
+      {/* Delete Problem Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteProblemModal}
+        onClose={() => setShowDeleteProblemModal(false)}
+        onConfirm={handleConfirmDeleteProblem}
+        title="Delete Problem"
+        message="Are you sure you want to delete this problem? This action cannot be undone."
+      />
+
+      {/* Problem Edit Modal */}
+      <ProblemModal
+        isOpen={showProblemModal}
+        onClose={() => setShowProblemModal(false)}
+        onSave={handleSaveProblem}
+        problem={selectedProblem}
+        patients={[patient]} // Pass the current patient as the only option
       />
     </div>
   );

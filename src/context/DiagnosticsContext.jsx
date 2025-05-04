@@ -4,51 +4,67 @@ import { diagnosticApi } from '../services/api';
 // Create a context
 const DiagnosticsContext = createContext();
 
-// Default mock data
+// Default mock data for imaging and studies
 const defaultDiagnostics = [
   {
     id: 1,
     patientId: 1,
     patientName: 'James Wilson',
-    code: 'I10',
-    description: 'Essential (primary) hypertension',
+    type: 'Imaging',
+    study: 'Chest X-ray',
     date: '2025-04-15',
-    status: 'Active',
-    notes: 'Patient has been on Lisinopril 10mg daily with good control.',
-    provider: 'Dr. Smith'
+    status: 'Completed',
+    result: 'Normal cardiac silhouette. No infiltrates or effusions.',
+    provider: 'Dr. Smith',
+    orderingProvider: 'Dr. Johnson'
   },
   {
     id: 2,
     patientId: 1,
     patientName: 'James Wilson',
-    code: 'E11.9',
-    description: 'Type 2 diabetes mellitus without complications',
+    type: 'Study',
+    study: 'Electrocardiogram (ECG)',
     date: '2025-04-15',
-    status: 'Active',
-    notes: 'Well controlled with Metformin 1000mg BID. A1C 6.7%.',
-    provider: 'Dr. Smith'
+    status: 'Completed',
+    result: 'Normal sinus rhythm. No ST-T wave changes.',
+    provider: 'Dr. Smith',
+    orderingProvider: 'Dr. Johnson'
   },
   {
     id: 3,
     patientId: 2,
     patientName: 'Sarah Johnson',
-    code: 'G43.909',
-    description: 'Migraine, unspecified, not intractable, without status migrainosus',
+    type: 'Imaging',
+    study: 'MRI Brain',
     date: '2025-04-22',
-    status: 'Active',
-    notes: 'Experiences migraines approximately twice monthly. Using sumatriptan as needed.',
-    provider: 'Dr. Johnson'
+    status: 'Completed',
+    result: 'No acute intracranial abnormality. No evidence of mass or hemorrhage.',
+    provider: 'Dr. Johnson',
+    orderingProvider: 'Dr. Williams'
   },
   {
     id: 4,
     patientId: 3,
     patientName: 'Robert Davis',
-    code: 'J44.9',
-    description: 'Chronic obstructive pulmonary disease, unspecified',
+    type: 'Imaging',
+    study: 'CT Chest',
     date: '2025-04-15',
-    status: 'Active',
-    notes: 'COPD with occasional exacerbations. Using albuterol inhaler and tiotropium.',
-    provider: 'Dr. Williams'
+    status: 'Completed',
+    result: 'Emphysematous changes consistent with COPD. No masses or nodules identified.',
+    provider: 'Dr. Williams',
+    orderingProvider: 'Dr. Smith'
+  },
+  {
+    id: 5,
+    patientId: 3,
+    patientName: 'Robert Davis',
+    type: 'Study',
+    study: 'Pulmonary Function Test',
+    date: '2025-04-16',
+    status: 'Completed',
+    result: 'FEV1/FVC ratio reduced, consistent with obstructive pattern. Moderate severity.',
+    provider: 'Dr. Williams',
+    orderingProvider: 'Dr. Smith'
   }
 ];
 
