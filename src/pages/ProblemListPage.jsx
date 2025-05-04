@@ -10,15 +10,21 @@ import {
   XCircleIcon
 } from '@heroicons/react/24/outline';
 import { useProblemList } from '../context/ProblemListContext';
+import { usePatient } from '../context/PatientContext';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import ProblemModal from '../components/ProblemModal';
 
 export default function ProblemListPage() {
-  const { problemList, updateProblem, deleteProblem } = useProblemList();
+  const { problemList, updateProblem, deleteProblem, addProblem } = useProblemList();
+  const { patients } = usePatient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [patientFilter, setPatientFilter] = useState('');
   const [showDeleteProblemModal, setShowDeleteProblemModal] = useState(false);
   const [selectedProblemId, setSelectedProblemId] = useState(null);
+  const [showProblemModal, setShowProblemModal] = useState(false);
+  const [selectedProblem, setSelectedProblem] = useState(null);
+  const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
 
   // Function to handle status change
   const handleStatusChange = async (problem, newStatus) => {
@@ -46,6 +52,43 @@ export default function ProblemListPage() {
       console.error('Error deleting problem:', error);
       alert('Failed to delete problem');
       setShowDeleteProblemModal(false);
+    }
+  };
+
+  // Function to handle adding a new problem via modal
+  const handleAddProblem = () => {
+    setSelectedProblem(null);
+    setSelectedDiagnosis(null);
+    setShowProblemModal(true);
+  };
+
+  // Function to handle editing a problem via modal
+  const handleEditProblem = (problem) => {
+    setSelectedProblem(problem);
+    setSelectedDiagnosis(null);
+    setShowProblemModal(true);
+  };
+
+  // Function to handle adding a common problem via modal
+  const handleAddCommonProblem = (diagnosis) => {
+    setSelectedProblem(null);
+    setSelectedDiagnosis(diagnosis);
+    setShowProblemModal(true);
+  };
+
+  // Function to save a problem from the modal
+  const handleSaveProblem = async (formData, problemId) => {
+    try {
+      if (problemId) {
+        // Update existing problem
+        await updateProblem(problemId, formData);
+      } else {
+        // Add new problem
+        await addProblem(formData);
+      }
+    } catch (error) {
+      console.error('Error saving problem:', error);
+      alert('Failed to save problem');
     }
   };
 
@@ -114,13 +157,13 @@ export default function ProblemListPage() {
             </select>
           </div>
           <div className="flex-shrink-0">
-            <Link
-              to="/problems/new"
+            <button
+              onClick={handleAddProblem}
               className="btn btn-primary inline-flex items-center justify-center w-full lg:w-auto"
             >
               <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
               Add Problem
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -213,13 +256,13 @@ export default function ProblemListPage() {
                         </div>
 
                         {/* Edit button */}
-                        <Link
-                          to={`/problems/new?id=${problem.id}`}
+                        <button
+                          onClick={() => handleEditProblem(problem)}
                           className="text-indigo-600 hover:text-indigo-900"
                           title="Edit Problem"
                         >
                           <PencilIcon className="h-5 w-5" />
-                        </Link>
+                        </button>
 
                         {/* Delete button */}
                         <button
@@ -273,12 +316,12 @@ export default function ProblemListPage() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Link
-                    to={`/problems/new?code=${diagnosis.code}&description=${encodeURIComponent(diagnosis.description)}`}
+                  <button
+                    onClick={() => handleAddCommonProblem(diagnosis)}
                     className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                   >
                     Add this problem
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -293,6 +336,19 @@ export default function ProblemListPage() {
         onConfirm={handleConfirmDeleteProblem}
         title="Delete Problem"
         message="Are you sure you want to delete this problem? This action cannot be undone."
+      />
+
+      {/* Problem Add/Edit Modal */}
+      <ProblemModal
+        isOpen={showProblemModal}
+        onClose={() => setShowProblemModal(false)}
+        onSave={handleSaveProblem}
+        problem={selectedProblem}
+        patients={patients}
+        initialValues={selectedDiagnosis ? {
+          code: selectedDiagnosis.code,
+          description: selectedDiagnosis.description
+        } : undefined}
       />
     </div>
   );

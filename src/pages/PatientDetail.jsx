@@ -690,12 +690,15 @@ export default function PatientDetail() {
                     >
                       Add Manual Entry
                     </button>
-                    <Link
-                      to={`/problems/new?patientId=${patient.id}`}
+                    <button
                       className="text-sm text-blue-600 hover:text-blue-500"
+                      onClick={() => {
+                        setSelectedProblem({patientId: patient.id});
+                        setShowProblemModal(true);
+                      }}
                     >
                       Add Problem
-                    </Link>
+                    </button>
                   </div>
                 </div>
                 <div className="border-t border-gray-200">
@@ -1574,10 +1577,16 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Problem List</h2>
-            <Link to={`/problems/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center">
+            <button
+              onClick={() => {
+                setSelectedProblem({patientId: patient.id});
+                setShowProblemModal(true);
+              }}
+              className="btn btn-primary inline-flex items-center"
+            >
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Add Problem
-            </Link>
+            </button>
           </div>
 
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">

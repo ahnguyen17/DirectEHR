@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import icd10Codes from '../data/icd10Codes';
 
-export default function ProblemModal({ isOpen, onClose, onSave, problem = null, patients = [] }) {
+export default function ProblemModal({ isOpen, onClose, onSave, problem = null, patients = [], initialValues = null }) {
   const [formData, setFormData] = useState({
     patientId: '',
     code: '',
@@ -15,9 +15,10 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionRef = useRef(null);
 
-  // If problem is provided, populate the form (for editing)
+  // If problem or initialValues is provided, populate the form
   useEffect(() => {
     if (problem) {
+      // For editing existing problems
       setFormData({
         patientId: problem.patientId || '',
         code: problem.code || '',
@@ -25,6 +26,16 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
         date: problem.date || new Date().toISOString().split('T')[0],
         status: problem.status || 'Active',
         notes: problem.notes || ''
+      });
+    } else if (initialValues) {
+      // For adding a problem with pre-filled values (e.g., from common problems)
+      setFormData({
+        patientId: initialValues.patientId || '',
+        code: initialValues.code || '',
+        description: initialValues.description || '',
+        date: new Date().toISOString().split('T')[0],
+        status: 'Active',
+        notes: ''
       });
     } else {
       // Reset form for new entries
@@ -37,7 +48,7 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
         notes: ''
       });
     }
-  }, [problem]);
+  }, [problem, initialValues]);
 
   // Add click outside listener to close suggestions
   useEffect(() => {
