@@ -789,16 +789,106 @@ export default function PatientDetail() {
                     <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                       <dt className="text-sm font-medium text-gray-500">Tobacco Use</dt>
                       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {patient.socialHistory?.tobaccoUse || 'Not recorded'}
+                        <div>
+                          <span className="font-medium">{patient.socialHistory?.tobaccoUse || 'Not recorded'}</span>
+
+                          {patient.socialHistory?.tobaccoUse && patient.socialHistory.tobaccoUse !== 'Never' && (
+                            <div className="mt-1 pl-2 border-l-2 border-gray-200">
+                              {patient.socialHistory.tobaccoType && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Type:</span> {patient.socialHistory.tobaccoType}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.tobaccoPackYears && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Pack Years:</span> {patient.socialHistory.tobaccoPackYears}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.tobaccoFrequency && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Frequency:</span> {patient.socialHistory.tobaccoFrequency}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.tobaccoQuitDate && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Quit Date:</span> {formatDate(patient.socialHistory.tobaccoQuitDate)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </dd>
                     </div>
                     <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                       <dt className="text-sm font-medium text-gray-500">Alcohol Use</dt>
                       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {patient.socialHistory?.alcoholUse || 'Not recorded'}
+                        <div>
+                          <span className="font-medium">{patient.socialHistory?.alcoholUse || 'Not recorded'}</span>
+
+                          {patient.socialHistory?.alcoholUse && patient.socialHistory.alcoholUse !== 'None' && (
+                            <div className="mt-1 pl-2 border-l-2 border-gray-200">
+                              {patient.socialHistory.alcoholType && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Type:</span> {patient.socialHistory.alcoholType}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.alcoholDrinksPerWeek && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Drinks Per Week:</span> {patient.socialHistory.alcoholDrinksPerWeek}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.alcoholFrequency && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Frequency:</span> {patient.socialHistory.alcoholFrequency}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </dd>
                     </div>
                     <div className="bg-gray-50 px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt className="text-sm font-medium text-gray-500">Recreational Drug Use</dt>
+                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                        <div>
+                          <span className="font-medium">{patient.socialHistory?.drugUse || 'Not recorded'}</span>
+
+                          {patient.socialHistory?.drugUse && patient.socialHistory.drugUse !== 'Never' && (
+                            <div className="mt-1 pl-2 border-l-2 border-gray-200">
+                              {patient.socialHistory.drugTypes && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Types:</span> {patient.socialHistory.drugTypes}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.drugFrequency && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Frequency:</span> {patient.socialHistory.drugFrequency}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.drugLastUse && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Last Use:</span> {formatDate(patient.socialHistory.drugLastUse)}
+                                </div>
+                              )}
+
+                              {patient.socialHistory.drugComments && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Comments:</span> {patient.socialHistory.drugComments}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </dd>
+                    </div>
+                    <div className="bg-white px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                       <dt className="text-sm font-medium text-gray-500">Exercise</dt>
                       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                         {patient.socialHistory?.exercise || 'Not recorded'}
