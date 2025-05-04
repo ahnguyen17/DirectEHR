@@ -1,24 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { DocumentTextIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { usePatient } from '../context/PatientContext';
+import NoteModal from '../components/NoteModal';
 
 export default function NotesPage() {
+  const { addNote, notes: allNotes } = usePatient();
   const [notes, setNotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPatient, setFilterPatient] = useState('');
+  const [showNoteModal, setShowNoteModal] = useState(false);
 
   useEffect(() => {
-    // In a real app, this would fetch data from an API
-    const mockNotes = [
-      { id: 1, patientId: 1, patientName: 'James Wilson', date: '2025-04-30', title: 'Routine Check-up', content: 'Patient presents for routine follow-up for hypertension and diabetes. Both conditions appear well-controlled with current medication regimen. Blood pressure is 125/82, which is within target range. A1C is 6.7%, showing good glycemic control.' },
-      { id: 2, patientId: 1, patientName: 'James Wilson', date: '2025-03-15', title: 'Medication Review', content: 'Reviewed current medications with patient. No reported side effects from Lisinopril or Metformin. Patient reports taking medications as prescribed. Refilled both medications for 90 days.' },
-      { id: 3, patientId: 2, patientName: 'Sarah Johnson', date: '2025-04-22', title: 'Annual Physical', content: 'Patient presents for annual physical examination. Overall in good health. Blood pressure 118/75, pulse 68, temperature 98.6. All systems reviewed with no concerning findings. Recommended continued exercise regimen and healthy diet.' },
-      { id: 4, patientId: 3, patientName: 'Robert Davis', date: '2025-04-15', title: 'Follow-up Visit', content: 'Follow-up for COPD. Patient reports slight improvement in breathing with new inhaler. Still experiences shortness of breath with moderate exertion. Oxygen saturation 94% at rest. Discussed smoking cessation strategies.' },
-      { id: 5, patientId: 4, patientName: 'Emily Chen', date: '2025-04-10', title: 'New Patient Visit', content: 'Initial consultation with new patient. Medical history taken. Patient reports occasional migraine headaches, otherwise healthy. Family history significant for hypertension and diabetes. Created care plan for migraine management.' },
-    ];
-
-    setNotes(mockNotes);
-  }, []);
+    // Use notes from PatientContext
+    setNotes(allNotes);
+  }, [allNotes]);
 
   const filteredNotes = notes.filter(note => {
     const matchesSearch =
@@ -64,13 +60,13 @@ export default function NotesPage() {
             />
           </div>
           <div className="flex-shrink-0">
-            <Link
-              to="/notes/new"
+            <button
+              onClick={() => setShowNoteModal(true)}
               className="btn btn-primary inline-flex items-center justify-center w-full lg:w-auto"
             >
               <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
               New Note
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -125,6 +121,14 @@ export default function NotesPage() {
           </div>
         )}
       </div>
+
+      {/* Note Modal */}
+      <NoteModal
+        isOpen={showNoteModal}
+        onClose={() => setShowNoteModal(false)}
+        onSave={addNote}
+        patientId={null}
+      />
     </div>
   );
 }

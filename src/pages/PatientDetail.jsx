@@ -26,6 +26,7 @@ import SocialHistoryModal from '../components/SocialHistoryModal';
 import AllergyModal from '../components/AllergyModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import MedicationManagement from '../components/MedicationManagement';
+import NoteModal from '../components/NoteModal';
 
 export default function PatientDetail() {
   const { id } = useParams();
@@ -33,6 +34,7 @@ export default function PatientDetail() {
   const location = useLocation();
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showNoteModal, setShowNoteModal] = useState(false);
 
   // Get tab from URL query parameter if it exists
   const queryParams = new URLSearchParams(location.search);
@@ -64,7 +66,7 @@ export default function PatientDetail() {
   const [diagnostics, setDiagnostics] = useState([]);
   const [problems, setProblems] = useState([]);
 
-  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, updatePatient } = usePatient();
+  const { getPatient, getPatientNotes, getPatientOrders, getPatientVitals, updatePatient, addNote } = usePatient();
   const { getPatientLabResults } = useLabs();
   const { getPatientDiagnostics } = useDiagnostics();
   const { getPatientProblems, updateProblem, deleteProblem, addProblem } = useProblemList();
@@ -477,6 +479,21 @@ export default function PatientDetail() {
       console.error('Error deleting problem:', error);
       alert('Failed to delete problem');
       setShowDeleteProblemModal(false);
+    }
+  };
+
+  const handleAddNote = async (noteData) => {
+    try {
+      const newNote = await addNote(noteData);
+      // Update the patient object with the new note
+      setPatient(prevPatient => ({
+        ...prevPatient,
+        notes: [...prevPatient.notes, newNote]
+      }));
+      return newNote;
+    } catch (error) {
+      console.error('Error adding note:', error);
+      throw error;
     }
   };
 
@@ -1228,10 +1245,13 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Patient Notes</h2>
-            <Link to={`/patients/${patient.id}/notes/new`} className="btn btn-primary inline-flex items-center">
+            <button
+              onClick={() => setShowNoteModal(true)}
+              className="btn btn-primary inline-flex items-center"
+            >
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Add Note
-            </Link>
+            </button>
           </div>
 
           <div className="space-y-6">
@@ -1259,6 +1279,14 @@ export default function PatientDetail() {
               </div>
             )}
           </div>
+
+          {/* Note Modal */}
+          <NoteModal
+            isOpen={showNoteModal}
+            onClose={() => setShowNoteModal(false)}
+            onSave={handleAddNote}
+            patientId={patient.id}
+          />
         </div>
       )}
 
