@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import icd10Codes from '../data/icd10Codes';
 
 export default function ProblemModal({ isOpen, onClose, onSave, problem = null, patients = [] }) {
   const [formData, setFormData] = useState({
@@ -10,6 +11,9 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
     status: 'Active',
     notes: ''
   });
+  const [filteredCodes, setFilteredCodes] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionRef = useRef(null);
 
   // If problem is provided, populate the form (for editing)
   useEffect(() => {
@@ -35,17 +39,51 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
     }
   }, [problem]);
 
+  // Add click outside listener to close suggestions
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (suggestionRef.current && !suggestionRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+
+    // Filter ICD-10 codes based on description input
+    if (name === 'description' && value.trim() !== '') {
+      const filtered = icd10Codes.filter(code =>
+        code.description.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCodes(filtered.slice(0, 5)); // Limit to 5 suggestions
+      setShowSuggestions(filtered.length > 0);
+    } else if (name === 'description') {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectCode = (code, description) => {
+    setFormData(prev => ({
+      ...prev,
+      code: code,
+      description: description
+    }));
+    setShowSuggestions(false);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.patientId) {
       alert('Please select a patient');
@@ -56,7 +94,7 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
       ...formData,
       patientId: parseInt(formData.patientId)
     };
-    
+
     onSave(processedData, problem ? problem.id : null);
     onClose();
   };
@@ -104,32 +142,51 @@ export default function ProblemModal({ isOpen, onClose, onSave, problem = null, 
             </div>
           )}
 
-          {/* Problem Code */}
-          <div>
-            <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-              ICD-10 Code
-            </label>
-            <input
-              type="text"
-              name="code"
-              id="code"
-              value={formData.code}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              required
-            />
-          </div>
-
-          {/* Problem Description */}
-          <div>
+          {/* Problem Description with Auto-suggestion */}
+          <div className="relative" ref={suggestionRef}>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700">
               Description
             </label>
+            <p className="text-xs text-gray-500 mb-1">Start typing to see matching ICD-10 codes</p>
             <input
               type="text"
               name="description"
               id="description"
               value={formData.description}
+              onChange={handleChange}
+              placeholder="Type problem description..."
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+            />
+            {showSuggestions && (
+              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm">
+                {filteredCodes.map((item) => (
+                  <div
+                    key={item.code}
+                    className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
+                    onClick={() => handleSelectCode(item.code, item.description)}
+                  >
+                    <div className="flex items-center">
+                      <span className="font-medium text-gray-900 mr-2">{item.code}:</span>
+                      <span className="text-gray-700 truncate">{item.description}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Problem Code */}
+          <div>
+            <label htmlFor="code" className="block text-sm font-medium text-gray-700">
+              ICD-10 Code
+            </label>
+            <p className="text-xs text-gray-500 mb-1">Auto-filled when selecting from suggestions</p>
+            <input
+              type="text"
+              name="code"
+              id="code"
+              value={formData.code}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               required
