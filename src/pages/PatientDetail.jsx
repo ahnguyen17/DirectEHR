@@ -1176,13 +1176,13 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Vitals History</h2>
-            <Link to={`/patients/${patient.id}/vitals`} className="btn btn-primary inline-flex items-center">
+            <Link to={`/patients/${patient.id}/vitals`} className="btn btn-primary inline-flex items-center min-w-max">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Record New Vitals
             </Link>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+          <div className="table-container mb-6">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -1247,7 +1247,7 @@ export default function PatientDetail() {
             <h2 className="text-lg font-medium text-gray-900">Patient Notes</h2>
             <button
               onClick={() => setShowNoteModal(true)}
-              className="btn btn-primary inline-flex items-center"
+              className="btn btn-primary inline-flex items-center min-w-max"
             >
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Add Note
@@ -1294,13 +1294,13 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Orders</h2>
-            <Link to={`/patients/${patient.id}/orders/new`} className="btn btn-primary inline-flex items-center">
+            <Link to={`/patients/${patient.id}/orders/new`} className="btn btn-primary inline-flex items-center min-w-max">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               New Order
             </Link>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="table-container">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -1387,15 +1387,15 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Lab Results</h2>
-            <Link to={`/labs/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center">
+            <Link to={`/labs/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center min-w-max">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Order New Lab
             </Link>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="table-container">
             {labResults && labResults.length > 0 ? (
-              <div>
+              <div className="table-responsive">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
@@ -1457,7 +1457,8 @@ export default function PatientDetail() {
                             </div>
                           </div>
 
-                          <table className="min-w-full divide-y divide-gray-200">
+                          <div className="table-responsive">
+                            <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                               <tr>
                                 <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1500,6 +1501,7 @@ export default function PatientDetail() {
                               ))}
                             </tbody>
                           </table>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1515,10 +1517,6 @@ export default function PatientDetail() {
 
       {activeTab === 'medications' && (
         <div className="medications-tab">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-medium text-gray-900">Medication Management</h2>
-          </div>
-
           <MedicationManagement
             patient={patient}
             onUpdate={(updatedPatient) => setPatient(updatedPatient)}
@@ -1530,13 +1528,13 @@ export default function PatientDetail() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-medium text-gray-900">Diagnostics</h2>
-            <Link to={`/diagnostics/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center">
+            <Link to={`/diagnostics/new?patientId=${patient.id}`} className="btn btn-primary inline-flex items-center min-w-max">
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Order New Study
             </Link>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="table-container">
             {diagnostics && diagnostics.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -1610,14 +1608,14 @@ export default function PatientDetail() {
                 setSelectedProblem({patientId: patient.id});
                 setShowProblemModal(true);
               }}
-              className="btn btn-primary inline-flex items-center"
+              className="btn btn-primary inline-flex items-center min-w-max"
             >
               <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
               Add Problem
             </button>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="table-container">
             {problems && problems.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">

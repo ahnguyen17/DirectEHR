@@ -52,7 +52,7 @@ export default function PatientList() {
           </div>
           <Link
             to="/patients/new"
-            className="btn btn-primary inline-flex items-center justify-center"
+            className="btn btn-primary inline-flex items-center justify-center min-w-max"
           >
             <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
             Add Patient
@@ -60,7 +60,7 @@ export default function PatientList() {
         </div>
       </div>
 
-      <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md">
+      <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md overflow-x-auto">
         <ul className="divide-y divide-gray-200">
           {filteredPatients.length > 0 ? (
             filteredPatients.map((patient) => (

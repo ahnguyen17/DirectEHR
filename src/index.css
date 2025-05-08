@@ -10,24 +10,32 @@ body {
   .btn {
     @apply px-4 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-opacity-50;
   }
-  
+
   .btn-primary {
     @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400;
   }
-  
+
   .btn-danger {
     @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow-md p-6;
   }
-  
+
   .input {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+
+  .table-container {
+    @apply bg-white shadow overflow-hidden sm:rounded-lg table-responsive;
   }
 }

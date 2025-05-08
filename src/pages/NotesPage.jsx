@@ -59,10 +59,10 @@ export default function NotesPage() {
               onChange={(e) => setFilterPatient(e.target.value)}
             />
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 min-w-max">
             <button
               onClick={() => setShowNoteModal(true)}
-              className="btn btn-primary inline-flex items-center justify-center w-full lg:w-auto"
+              className="btn btn-primary inline-flex items-center justify-center w-full"
             >
               <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
               New Note

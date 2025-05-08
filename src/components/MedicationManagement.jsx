@@ -572,6 +572,20 @@ export default function MedicationManagement({ patient, onUpdate }) {
 
   return (
     <div>
+      {/* Header with Title and Add Button */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-medium text-gray-900">Medication Management</h2>
+        {activeTab !== 'history' && (
+          <button
+            className="btn btn-primary inline-flex items-center min-w-max"
+            onClick={handleAddMedication}
+          >
+            <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
+            {activeTab === 'current' ? 'Add Medication' : 'New Medication Order'}
+          </button>
+        )}
+      </div>
+
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-4">
         <nav className="-mb-px flex space-x-8">
@@ -608,22 +622,9 @@ export default function MedicationManagement({ patient, onUpdate }) {
         </nav>
       </div>
 
-      {/* Add Medication Button */}
-      <div className="flex justify-end mb-4">
-        {activeTab !== 'history' && (
-          <button
-            className="btn btn-primary inline-flex items-center"
-            onClick={handleAddMedication}
-          >
-            <PlusIcon className="-ml-1 mr-1 h-5 w-5" aria-hidden="true" />
-            {activeTab === 'current' ? 'Add Medication' : 'New Medication Order'}
-          </button>
-        )}
-      </div>
-
       {/* Current Medications Tab */}
       {activeTab === 'current' && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="table-container">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -707,7 +708,7 @@ export default function MedicationManagement({ patient, onUpdate }) {
 
       {/* Medication History Tab */}
       {activeTab === 'history' && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="table-container">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -812,7 +813,7 @@ export default function MedicationManagement({ patient, onUpdate }) {
 
       {/* Medication Orders Tab */}
       {activeTab === 'orders' && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="table-container">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
